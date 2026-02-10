@@ -6,15 +6,21 @@ export default defineConfig({
   title: "Ficha de Treino",
   description: "Plano de Treino Abrangente para Hipertrofia e Força",
   themeConfig: {
+    // Habilita os links de navegação prev/next
+    docFooter: {
+      prev: 'Anterior',
+      next: 'Próximo'
+    },
+
     sidebar: [
       {
         text: 'Treinamento',
         items: [
-          { text: 'Segunda', link: 'days/treino-1' },
-          { text: 'Terça', link: 'days/treino-2' },
-          { text: 'Quarta', link: 'days/treino-3' },
-          { text: 'Sexta', link: 'days/treino-4' },
-          { text: 'Sábado', link: 'days/treino-5' },
+          { text: 'Segunda', link: '/days/treino-1' },
+          { text: 'Terça', link: '/days/treino-2' },
+          { text: 'Quarta', link: '/days/treino-3' },
+          { text: 'Sexta', link: '/days/treino-4' },
+          { text: 'Sábado', link: '/days/treino-5' },
         ]
       }
     ],

@@ -8,13 +8,13 @@
 
 | Dia | Treino | Foco Principal | Volume/Intensidade |
 | :--- | :--- | :--- | :--- |
-| **Segunda** | **Treino 1: Push 1** | Peito, Ombro e Tríceps | **Tensão Mecânica:** Cargas altas e repetições baixas nos básicos. |
-| **Terça** | **Treino 2: Pull 1** | Costas, Ombro Post. e Bíceps | **Volume e Espessura:** Variação de ângulos e pegadas. |
-| **Quarta** | **Treino 3: Legs 1** | Quadríceps e Panturrilhas | **Tensão Máxima:** Agachamentos e Leg Press pesados. |
-| **Quinta** | **DESCANSO** | Recuperação Sistêmica | Dia vital para o crescimento e saúde do SNC. |
-| **Sexta** | **Treino 4: Upper 2** | Superior (Híbrido) | **Estresse Metabólico:** Descansos curtos e foco na contração ("Pump"). |
-| **Sábado** | **Treino 5: Legs 2** | Posterior, Glúteo e Pant. | **Pico de Contração:** Foco em isquiotibiais e glúteos. |
-| **Domingo**| **OFF TOTAL** | Recuperação Ativa | Priorize sono de 7 a 9 horas e hidratação. |
+| [**Segunda**](/days/treino-1.md) | **Treino 1: Push 1** | Peito, Ombro e Tríceps | **Tensão Mecânica:** Cargas altas e repetições baixas nos básicos. |
+| [**Terça**](/days/treino-2.md) | **Treino 2: Pull 1** | Costas, Ombro Post. e Bíceps | **Volume e Espessura:** Variação de ângulos e pegadas. |
+| [**Quarta**](/days/treino-3.md) | **Treino 3: Legs 1** | Quadríceps e Panturrilhas | **Tensão Máxima:** Agachamentos e Leg Press pesados. |
+| [**Quinta**](index.md) | **DESCANSO** | Recuperação Sistêmica | Dia vital para o crescimento e saúde do SNC. |
+| [**Sexta**](/days/treino-4.md) | **Treino 4: Upper 2** | Superior (Híbrido) | **Estresse Metabólico:** Descansos curtos e foco na contração ("Pump"). |
+| [**Sábado**](/days/treino-5.md) | **Treino 5: Legs 2** | Posterior, Glúteo e Pant. | **Pico de Contração:** Foco em isquiotibiais e glúteos. |
+| [**Domingo**](index.md) | **OFF TOTAL** | Recuperação Ativa | Priorize sono de 7 a 9 horas e hidratação. |
 
 ---
 
