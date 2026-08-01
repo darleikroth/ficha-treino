@@ -31,10 +31,12 @@ foram preservadas em [`historico/`](historico/) (DD-A16).
 ```bash
 npm install
 
-npm run dev        # servidor de desenvolvimento
+npm run dev        # servidor de desenvolvimento — porta 5199
 npm run build      # typecheck + build em dist/
-npm run preview    # servir o build
-npm test           # testes do core (node --test)
+npm run preview    # servir o build — porta 5200
+npm test           # todos os testes
+npm run test:core  # só o core (node --test, sem mock)
+npm run test:app   # só as camadas de app (Vitest)
 
 npm run ciclo 2            # imprime o Ciclo 2 em Markdown
 npm run ciclo -- --check   # valida catálogo e simula 12 ciclos
@@ -42,6 +44,10 @@ npm run ciclo -- --diff 2 3
 
 npm run deploy     # build + firebase deploy --only hosting
 ```
+
+As portas são fixas de propósito: o escopo de um service worker é a origem
+inteira, então um projeto Vite com PWA na 5173 padrão sequestra o shell de
+qualquer outro app servido na mesma porta.
 
 Emulador local (hosting na porta **5010** — a 5000 é ocupada pelo AirPlay no macOS):
 

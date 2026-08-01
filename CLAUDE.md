@@ -111,6 +111,8 @@ Estas já custaram análise. Não redescubra.
 | Trocar metodologia no meio de um ciclo invalida cargas em progresso | bloquear troca com ciclo em andamento (DD-A03) |
 | **`metodologiaVersao` versiona os dados, não o código do gerador.** Corrigir o gerador muda a saída sem que a metodologia mude uma linha | `config.geradorVersao` pinado junto; mudança de gerador que altere saída é bloqueada no meio de ciclo, igual DD-A03 · DD-A17 |
 | Ressincronizar `src-core/` sobrescreve os ajustes de layout do repo | após copiar para `src/core/`, reaponte os imports de `ferramentas/cli.ts` para `../src/core/` |
+| **Service worker de outro projeto na porta 5173.** O escopo de um SW é a origem inteira, e 5173 é o default de todo projeto Vite: um app com PWA registrado ali passa a servir o shell dele no lugar do nosso — o app some e sobra o cache do vizinho, com os módulos ainda vindo da rede (o que disfarça o sintoma) | portas fixas próprias: dev **5199**, preview **5200** (`vite.config.ts`) |
+| `await` de algo que não é requisição do IDB dentro de uma transação a fecha no meio | em `comTransacao`, só encadeie `await pedido(...)`; emita requisições paralelas antes do primeiro `await` |
 | IndexedDB evictado no iOS Safari após ~7 dias sem uso | `navigator.storage.persist()` + sugerir instalar como PWA |
 | `<input type="number">` é hostil em mobile | `StepperNumero` com botões ≥44px e `inputmode="decimal"` |
 | Confiar em `validar()` para checar cooldown | `validar()` vê um ciclo só; use `validarSequencia()` · DD-A17 |
@@ -144,9 +146,12 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       (DD-A17), build gera bundle.
       *Feito:* 31 testes verdes; TypeScript fixado em 5.x (o 7 não expõe `lib/tsc` e
       quebra o `vue-tsc`).
-- [ ] **Fase 2 — IndexedDB e outbox.** `db/esquema.ts`, `idb.ts`, `outbox.ts`,
+- [x] **Fase 2 — IndexedDB e outbox.** `db/esquema.ts`, `idb.ts`, `outbox.ts`,
       `repos.ts`. Sem Firebase ainda.
       *Checkpoint:* sessão sobrevive a reload; outbox acumula e persiste.
+      *Feito:* 40 testes Vitest com `fake-indexeddb`, mais verificação no Chrome
+      com IndexedDB real e reload de verdade. Dev server em porta fixa **5199** —
+      ver armadilha do service worker vizinho.
 - [ ] **Fase 3 — Auth e seed.** `firebase/app.ts`, `auth.ts`, `stores/auth.ts`,
       `scripts/seed-metodologia.ts`, `database.rules.json` publicado.
       *Checkpoint:* login Google ok; `/metodologia/v1` populado; reload offline

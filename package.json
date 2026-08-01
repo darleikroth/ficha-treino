@@ -6,7 +6,9 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test src/core/__tests__/*.test.ts",
+    "test": "npm run test:core && npm run test:app",
+    "test:core": "node --experimental-strip-types --test src/core/__tests__/*.test.ts",
+    "test:app": "vitest run",
     "ciclo": "node --experimental-strip-types ferramentas/cli.ts",
     "deploy": "npm run build && firebase deploy --only hosting"
   },
@@ -19,8 +21,10 @@
   "devDependencies": {
     "@types/node": "^26.1.2",
     "@vitejs/plugin-vue": "^6.0.8",
+    "fake-indexeddb": "^6.2.5",
     "typescript": "^5.9.3",
     "vite": "^8.2.0",
+    "vitest": "^4.1.10",
     "vue-tsc": "^3.3.9"
   }
 }
