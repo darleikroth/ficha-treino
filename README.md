@@ -1,44 +1,62 @@
-# 🏋️ Ficha de Treino
+# 🏋️ FichaTreino
 
-Este projeto é um sistema de organização de treinos semanais focado em **Hipertrofia Máxima**, utilizando **VitePress** para gerar uma documentação estática acessível e organizada.
+App de controle de treino de hipertrofia: PWA offline-first com ciclos de treino
+gerados deterministicamente.
 
-## 🚀 Tecnologias
+Substitui o site estático VitePress que existia neste repo. As fichas em markdown
+foram preservadas em [`historico/`](historico/) (DD-A16).
 
-- [VitePress](https://vitepress.dev/): Gerador de sites estáticos focado em documentação.
-- [Firebase](https://firebase.google.com/): Utilizado para hospedagem e serviços auxiliares.
-- [Markdown](https://www.markdownguide.org/): Formatação simplificada para os treinos.
+## 🚀 Stack
 
-## 📋 Organização do Projeto
+- **Vite + Vue 3** (Composition API, `<script setup>`) + **Pinia** + **Vue Router**
+- **Firebase** — Auth (Google), Realtime Database, Hosting
+- **IndexedDB** com outbox próprio — o RTDB web não persiste em disco
+- **PWA** — service worker para o shell, IndexedDB para os dados
 
-O projeto está organizado da seguinte forma:
+## 📋 Organização
 
-- [index.md](index.md): Visão geral do cronograma semanal e pilares de evolução.
-- [days/](days/): Pasta contendo os detalhes de cada treino diário.
-  - [treino-1.md](days/treino-1.md) até [treino-5.md](days/treino-5.md): Divisões de treino atuais.
-  - [2025-4/](days/2025-4/): Histórico de treinos organizados por ano-mês.
+| Caminho | Conteúdo |
+|---|---|
+| `src/core/` | Gerador determinístico de ciclos. Zero dependências, sem Vue/Firebase. |
+| `src/db/` | IndexedDB, outbox e repositórios |
+| `src/firebase/` | Auth, paths e sincronização |
+| `src/stores/` | Pinia |
+| `src/views/` · `src/components/` | UI |
+| `ferramentas/cli.ts` | Inspeção de ciclos fora do app (não entra no bundle) |
+| `historico/` | Fichas markdown do site antigo, preservadas |
+| `docs/` | Arquitetura e metodologia |
 
-## 💻 Como Rodar o Projeto
+## 💻 Comandos
 
-Para visualizar os treinos localmente com a interface do VitePress:
+```bash
+npm install
 
-1. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+npm run dev        # servidor de desenvolvimento
+npm run build      # typecheck + build em dist/
+npm run preview    # servir o build
+npm test           # testes do core (node --test)
 
-2. **Inicie o servidor de desenvolvimento:**
-    ```bash
-   npm run docs:dev
-    ```
+npm run ciclo 2            # imprime o Ciclo 2 em Markdown
+npm run ciclo -- --check   # valida catálogo e simula 12 ciclos
+npm run ciclo -- --diff 2 3
 
-3. **Para gerar a versão final (Build):**
-    ```bash
-   npm run docs:build
-    ```
+npm run deploy     # build + firebase deploy --only hosting
+```
+
+Emulador local (hosting na porta **5010** — a 5000 é ocupada pelo AirPlay no macOS):
+
+```bash
+firebase emulators:start
+```
+
+## 📚 Documentação
+
+- [`CLAUDE.md`](CLAUDE.md) — invariantes do projeto e armadilhas conhecidas
+- [`docs/ARQUITETURA-APP-V1.md`](docs/ARQUITETURA-APP-V1.md) — arquitetura, DD-A01 a DD-A16
+- [`docs/SISTEMA-ROTACAO-V1.md`](docs/SISTEMA-ROTACAO-V1.md) — metodologia de treino, DD-01 a DD-11
 
 ## 🎯 Objetivo
 
-O plano foca em quebrar platôs através da variação de estímulos (tensão mecânica vs. estresse metabólico) e rotação estratégica de exercícios.
-
----
-*BORA PRA CIMA! 🚀*
+Quebrar platôs através da variação de estímulos (tensão mecânica vs. estresse
+metabólico) e rotação estratégica de exercícios, com registro de carga confiável
+mesmo sem rede — o app é usado na academia, celular na mão, entre séries.

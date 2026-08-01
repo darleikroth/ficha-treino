@@ -1,0 +1,44 @@
+{
+  "rules": {
+    "metodologia": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "usuarios": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "config": {
+          "cicloAtual": {
+            ".validate": "newData.isNumber() && newData.val() >= 1"
+          },
+          "metodologiaVersao": {
+            ".validate": "root.child('metodologia').child(newData.val()).exists()"
+          }
+        },
+        "sessoes": {
+          "$sessaoId": {
+            "status": {
+              ".validate": "newData.val() === 'ativa' || newData.val() === 'concluida' || newData.val() === 'descartada'"
+            },
+            "series": {
+              "$slotId": {
+                "$indice": {
+                  "peso": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 1000"
+                  },
+                  "reps": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 200"
+                  },
+                  "rir": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
