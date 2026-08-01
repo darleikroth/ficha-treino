@@ -18,6 +18,7 @@ import {
   query,
   ref as refDo,
   remove as removerNoRtdb,
+  runTransaction,
   serverTimestamp,
   set as gravarNoRtdb,
   update as atualizarNoRtdb,
@@ -32,6 +33,9 @@ import { obterBd } from "./app.ts";
 
 /** Quantas sessões o cliente espelha. `sessoes` cresce sem limite (§3). */
 export const SESSOES_ESPELHADAS = 30;
+
+/** Quando o RTDB entregou a metodologia — distingue do fallback do bundle. */
+export const CHAVE_METODOLOGIA_DO_SERVIDOR = "metodologiaDoServidorEm";
 
 /** Troca o marcador pelo `serverTimestamp()` do RTDB, em profundidade. */
 export function resolverMarcadores(valor: unknown): unknown {
@@ -120,6 +124,43 @@ export async function drenar(aplicar: Aplicador = aplicarNoRtdb): Promise<Result
   }
 }
 
+// ------------------------------------------- avanço de ciclo (DD-A03/§5)
+
+export class CicloDesatualizado extends Error {
+  constructor(readonly esperado: number, readonly encontrado: number | null) {
+    super(
+      `O ciclo mudou em outro dispositivo: você está no ${esperado}, o servidor está no ${encontrado}.`,
+    );
+    this.name = "CicloDesatualizado";
+  }
+}
+
+/**
+ * Avança o ciclo com `transaction()`, exigindo online.
+ *
+ * Este campo não pode passar pelo outbox. A drenagem resolve por "último a
+ * chegar", não por timestamp — medido: um aparelho offline gravou 9, o servidor
+ * recebeu 7 depois, e ao drenar o 9 venceu. Rebobinar o ciclo de alguém troca
+ * os exercícios no meio e invalida as cargas em progresso, então o avanço é a
+ * única escrita do app que exige rede e confirmação do valor anterior
+ * (ARQUITETURA §5).
+ */
+export async function avancarCicloRemoto(uid: string, de: number): Promise<number> {
+  const alvo = refDo(obterBd(), `${caminhos.caminhoConfig(uid)}/cicloAtual`);
+
+  const resultado = await runTransaction(alvo, (atual: number | null) => {
+    if (atual === null) return de + 1;
+    if (atual !== de) return undefined; // aborta: outro dispositivo já mexeu
+    return atual + 1;
+  });
+
+  if (!resultado.committed) {
+    throw new CicloDesatualizado(de, (resultado.snapshot.val() as number | null) ?? null);
+  }
+
+  return resultado.snapshot.val() as number;
+}
+
 // ------------------------------------------------------- descida
 
 /**
@@ -151,7 +192,11 @@ export function escutar(uid: string, versaoMetodologia: string): EscutaAtiva {
     onValue(refDo(bd, caminhos.caminhoMetodologia(versaoMetodologia)), (snap) => {
       const bruto = snap.val();
       if (!bruto) return;
-      void repos.gravarMetodologia(deRtdb(bruto) as Metodologia);
+      void repos.gravarMetodologia(deRtdb(bruto) as Metodologia).then(() =>
+        // Marca a procedência: gravarMetodologia é o mesmo caminho usado pelo
+        // fallback do bundle, e a store não teria como distinguir os dois.
+        repos.gravarMeta(CHAVE_METODOLOGIA_DO_SERVIDOR, Date.now()),
+      );
     }),
   );
 

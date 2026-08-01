@@ -118,6 +118,9 @@ Estas já custaram análise. Não redescubra.
 | O flash de `/login` no boot offline não aparece no URL final: a tela de login rebate para o destino assim que a sessão resolve | testar a **ordem** da decisão (`src/stores/__tests__/guarda.test.ts`), não o destino |
 | **`cicloAtual` resolve por "último a chegar", não por timestamp.** Verificado: um device offline gravou 9, o servidor recebeu 7 depois, e ao drenar o 9 venceu — um aparelho esquecido offline pode rebobinar o ciclo e invalidar cargas em progresso | `avancarCiclo()` da Fase 5 **precisa** ser `transaction()` no RTDB exigindo online (ARQUITETURA §5). `gravarConfig` genérico não serve para esse campo |
 | Um snapshot antigo do servidor chegando durante o boot apaga série recém-registrada | os listeners só aplicam com o outbox vazio (`localEstaAdiantado` em `firebase/sync.ts`). Enquanto houver escrita por subir, o local manda |
+| **`ref()` do Vue devolve Proxy, e `structuredClone` rejeita Proxy.** Gravar no IndexedDB um objeto vindo de store estoura `DataCloneError` na primeira escrita, em produção | `planificar()` em `db/idb.ts` converte para dado puro antes do `put`; aplicado também no payload do outbox |
+| Releitura disparada por evento é assíncrona e pode aplicar valor velho por cima de escrita mais nova. Comparar `atualizadoEm` não resolve: duas mudanças seguidas caem no mesmo milissegundo | contador de sequência local em `stores/config.ts`; a releitura desiste se houve escrita durante o voo |
+| Importar `firebase_*.js` sem o `?v=` do Vite no console cria **segunda instância** do SDK; misturar as duas dá `permission_denied` ou estouro de pilha | ao depurar no browser, importe pelos módulos do app (`/src/firebase/…`), não pelo dep otimizado |
 | IndexedDB evictado no iOS Safari após ~7 dias sem uso | `navigator.storage.persist()` + sugerir instalar como PWA |
 | `<input type="number">` é hostil em mobile | `StepperNumero` com botões ≥44px e `inputmode="decimal"` |
 | Confiar em `validar()` para checar cooldown | `validar()` vê um ciclo só; use `validarSequencia()` · DD-A17 |
@@ -175,10 +178,16 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       *Checkpoint (o mais importante do projeto):* com DevTools offline, registrar
       dados; voltar online e ver o outbox drenar **em ordem**; `pendentes` chega a
       zero. Se isso não estiver sólido, a Fase 6 vai parecer funcionar e não vai.
-- [ ] **Fase 5 — Ciclo.** `stores/metodologia.ts`, `stores/ciclo.ts`, views `Home` e
+- [x] **Fase 5 — Ciclo.** `stores/metodologia.ts`, `stores/ciclo.ts`, views `Home` e
       `Ciclo`.
       *Checkpoint:* ciclo exibido idêntico à saída do CLI; avançar ciclo rotaciona
       acessórios e mantém âncoras; volume bate com `volumeSemanal()`.
+      *Feito:* Ciclos 1 e 2 renderizados batem por hash com o JSON do CLI (40 itens,
+      mesmos nomes, séries, reps e âncoras); avanço manteve as 7 âncoras e rotacionou
+      33/33 acessórios; volume idêntico. `avancarCiclo` é `transaction` e recusa
+      avanço a partir de valor desatualizado.
+      *Decidido (DD-A16):* a ficha atual é o **Ciclo 1**; `historico/2025-4/` é
+      pré-histórico não numerado. Core intacto.
 - [ ] **Fase 6 — Execução.** `core/progressao.ts`, `stores/sessao.ts`,
       `stores/cargas.ts`, view `Treino` e componentes. Fase mais longa.
       *Checkpoint:* treino completo registrável em modo avião, sem perder dado ao

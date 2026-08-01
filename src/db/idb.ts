@@ -109,6 +109,29 @@ export async function comTransacao<T>(
   });
 }
 
+/**
+ * Converte para dado puro antes de persistir.
+ *
+ * O IndexedDB usa structured clone, que **rejeita Proxy** — e todo objeto que
+ * passa por um `ref()` do Vue é um Proxy reativo. Sem isto, gravar um objeto
+ * que veio de uma store falha com `DataCloneError` na primeira escrita, no
+ * browser, em produção. Deixar a defesa aqui vale mais que confiar em cada
+ * chamador lembrar de desembrulhar.
+ *
+ * Descarta `undefined` de quebra: o RTDB não aceita, e o payload do outbox sai
+ * daqui.
+ */
+export function planificar<T>(valor: T): T {
+  if (valor === null || typeof valor !== "object") return valor;
+  if (Array.isArray(valor)) return valor.map((item) => planificar(item)) as unknown as T;
+
+  const saida: Record<string, unknown> = {};
+  for (const [chave, item] of Object.entries(valor as Record<string, unknown>)) {
+    if (item !== undefined) saida[chave] = planificar(item);
+  }
+  return saida as T;
+}
+
 export const ler = <T>(tx: IDBTransaction, store: NomeStore, chave: IDBValidKey) =>
   pedido<T | undefined>(tx.objectStore(store).get(chave) as IDBRequest<T | undefined>);
 
@@ -120,7 +143,7 @@ export const gravar = (
   store: NomeStore,
   valor: unknown,
   chave?: IDBValidKey,
-) => pedido(tx.objectStore(store).put(valor, chave));
+) => pedido(tx.objectStore(store).put(planificar(valor), chave));
 
 export const remover = (tx: IDBTransaction, store: NomeStore, chave: IDBValidKey) =>
   pedido(tx.objectStore(store).delete(chave));

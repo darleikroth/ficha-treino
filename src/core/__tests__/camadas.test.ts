@@ -30,7 +30,16 @@ const arquivos = arquivosDoCore(DIR_CORE);
 
 test("o core tem os módulos esperados", () => {
   const nomes = arquivos.map((f) => f.slice(DIR_CORE.length + 1)).sort();
-  assert.deepEqual(nomes, ["estrutura.ts", "exercicios.ts", "gerador.ts", "metodologia.ts", "render.ts"]);
+  // progressao.ts é o único módulo do core escrito aqui, não vindo do pacote de
+  // referência (ARQUITETURA §9). Os demais são cópia byte a byte de src-core/.
+  assert.deepEqual(nomes, [
+    "estrutura.ts",
+    "exercicios.ts",
+    "gerador.ts",
+    "metodologia.ts",
+    "progressao.ts",
+    "render.ts",
+  ]);
 });
 
 test("DD-A01 · nenhum arquivo do core importa framework", () => {

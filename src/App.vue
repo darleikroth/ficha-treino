@@ -2,7 +2,12 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
+import { useInicializacao } from "./composables/useInicializacao.ts";
+
 const rota = useRoute();
+
+// Liga config → metodologia → ciclo → sync assim que houver uid, e desliga no logout.
+useInicializacao();
 
 // Login ocupa a tela inteira; a execução do treino também, para não competir por
 // espaço com os botões de registrar série.

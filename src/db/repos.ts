@@ -118,6 +118,37 @@ export async function removerOverride(uid: string, ciclo: number, slotId: string
   notificar("overrides");
 }
 
+/**
+ * Todos os overrides do usuário, na forma que `criarGerador` espera em
+ * `ciclosFixos`. O override participa da cadeia de cooldown, então o gerador
+ * precisa de todos os ciclos, não só do atual (DD-A06).
+ */
+export async function lerTodosOverrides(
+  uid: string,
+): Promise<Record<number, Record<string, string>>> {
+  return comTransacao(["overrides"], "readonly", async (tx) => {
+    const store = tx.objectStore("overrides");
+    const chaves = pedido<IDBValidKey[]>(store.getAllKeys());
+    const valores = pedido<Record<string, string>[]>(
+      store.getAll() as IDBRequest<Record<string, string>[]>,
+    );
+
+    const [ks, vs] = await Promise.all([chaves, valores]);
+    const prefixo = `${uid}:`;
+    const porCiclo: Record<number, Record<string, string>> = {};
+
+    ks.forEach((chave, i) => {
+      const texto = String(chave);
+      if (!texto.startsWith(prefixo)) return;
+      const ciclo = Number(texto.slice(prefixo.length));
+      if (!Number.isFinite(ciclo)) return;
+      if (vs[i] && Object.keys(vs[i]).length > 0) porCiclo[ciclo] = vs[i];
+    });
+
+    return porCiclo;
+  });
+}
+
 export async function aplicarOverridesRemotos(
   uid: string,
   ciclo: number,
@@ -151,6 +182,14 @@ export async function sessoesRecentes(uid: string, limite = 30): Promise<Sessao[
     .filter((s) => s.uid === uid)
     .sort((a, b) => b.id.localeCompare(a.id))
     .slice(0, limite);
+}
+
+/** Base de DD-A08: a semana do ciclo deriva daqui, não de data. */
+export async function contarSessoesConcluidas(uid: string, ciclo: number): Promise<number> {
+  const doCiclo = await comTransacao(["sessoes"], "readonly", (tx) =>
+    lerPorIndice<Sessao>(tx, "sessoes", "porCiclo", ciclo),
+  );
+  return doCiclo.filter((s) => s.uid === uid && s.status === "concluida").length;
 }
 
 /** DD-A07: id gerado no cliente, ordenável e sem colisão entre dispositivos. */

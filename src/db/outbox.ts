@@ -21,7 +21,7 @@ import {
   type OpOutbox,
   type OperacaoOutbox,
 } from "./esquema.ts";
-import { comTransacao, contar, lerTudo, pedido, remover } from "./idb.ts";
+import { comTransacao, contar, lerTudo, pedido, planificar, remover } from "./idb.ts";
 
 export interface NovaOp {
   path: string;
@@ -34,7 +34,7 @@ export function enfileirar(tx: IDBTransaction, nova: NovaOp): void {
   const op: OpOutbox = {
     path: nova.path,
     op: nova.op,
-    payload: nova.op === "remove" ? null : (nova.payload ?? null),
+    payload: nova.op === "remove" ? null : planificar(nova.payload ?? null),
     criadoEm: Date.now(),
     tentativas: 0,
     estado: "pendente",
