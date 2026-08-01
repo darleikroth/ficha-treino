@@ -122,11 +122,27 @@ instantaneamente e offline. Derivar isso varrendo sessões seria lento e exigiri
 o histórico completo local. Escrita dupla (sessão + cargas) no mesmo commit do
 outbox.
 
-### DD-A11 — PWA com `autoUpdate`, service worker fora do cache
-`vite-plugin-pwa` com `registerType: 'autoUpdate'`. No `firebase.json`, `sw.js` e
-`index.html` recebem `Cache-Control: no-cache`; assets com hash recebem
-`max-age=31536000, immutable`. Sem isso o usuário fica preso numa versão antiga
-indefinidamente — o Firebase Hosting tem cache agressivo por padrão.
+### DD-A11 — PWA com atualização controlada, service worker fora do cache
+`vite-plugin-pwa`. No `firebase.json`, `sw.js` e `index.html` recebem
+`Cache-Control: no-cache`; assets com hash recebem `max-age=31536000, immutable`.
+Sem isso o usuário fica preso numa versão antiga indefinidamente — o Firebase
+Hosting tem cache agressivo por padrão.
+
+> **Revisão 2026-08-01 — `prompt` no lugar de `autoUpdate`.** Com `autoUpdate` o
+> service worker assume e **recarrega a página sozinho** ao detectar versão
+> nova. Este app fica aberto durante o treino: o reload cairia no meio de uma
+> série. O dado sobrevive, porque está no IndexedDB, mas o timer de descanso
+> zera e o card aberto se perde. Passou a `registerType: 'prompt'` — o SW novo
+> fica em `waiting` e um banner deixa o usuário escolher a hora. O objetivo
+> original está mantido: ninguém fica preso numa versão antiga, e a checagem é
+> periódica e ao voltar do segundo plano, não só em navegação.
+>
+> **Correção 2026-08-01 — `source` casa o caminho da requisição.** O header
+> `no-cache` estava declarado só para `/index.html`, mas o Hosting compara
+> `source` com o caminho pedido, não com o arquivo que o rewrite resolve.
+> Medido em produção: `/index.html` vinha `no-cache` e `/` e `/ciclo` vinham
+> `max-age=3600` — exatamente as URLs que se abre. Corrigido com `source: "/"`
+> e `source: "**/!(*.*)"` (segmento final sem ponto = navegação).
 
 ### DD-A12 — Login com popup, não redirect
 `signInWithPopup`. `signInWithRedirect` depende de cookies de terceiros e está
@@ -181,7 +197,7 @@ Realtime Database via `fetch` handler. As duas camadas são independentes e amba
 obrigatórias. Um app com SW perfeito e sem IndexedDB abre offline e mostra tela
 vazia.
 
-Estratégia de cache: `precache` do shell (`registerType: 'autoUpdate'`), sem
+Estratégia de cache: `precache` do shell (`registerType: 'prompt'`, ver DD-A11), sem
 runtime caching para RTDB. Se houver runtime caching, restrinja a fontes e avatares
 do Google (`CacheFirst`, expiração de 30 dias).
 
@@ -794,7 +810,9 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
-      registerType: "autoUpdate",
+      // Revisado para "prompt" — ver DD-A11. Com autoUpdate o SW recarrega a
+      // página sozinho, e aqui isso cai no meio de uma série.
+      registerType: "prompt",
       includeAssets: ["favicon.svg", "icones/apple-touch-icon-180.png"],
       manifest: {
         name: "FichaTreino",

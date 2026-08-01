@@ -103,6 +103,8 @@ Estas já custaram análise. Não redescubra.
 |---|---|
 | **O Web SDK do RTDB não persiste em disco.** `setPersistenceEnabled` só existe no Android/iOS. Cache do browser é em memória e morre no reload. | IndexedDB próprio com outbox. É o motivo de DD-A02 existir. Não tente configurar persistência do RTDB. |
 | Firebase Hosting cacheia `index.html` e `sw.js` agressivamente | `Cache-Control: no-cache` nesses dois no `firebase.json`; assets com hash recebem `immutable` (DD-A11) |
+| **`headers.source` casa o caminho da REQUISIÇÃO, não o arquivo que o rewrite resolve.** Declarar só `/index.html` deixa `/` e as rotas profundas no default de 1 hora — as URLs que as pessoas abrem | também `source: "/"` e `source: "**/!(*.*)"` (segmento final sem ponto = navegação) |
+| `registerType: 'autoUpdate'` recarrega a página sozinho — no meio de uma série | `prompt` + `BannerAtualizacao`: o SW novo espera e o usuário escolhe a hora · DD-A11 revisado |
 | `signInWithRedirect` quebra com bloqueio de cookies de terceiros | `signInWithPopup`. `authDomain` é o próprio domínio, então é same-origin (DD-A12) |
 | Guard de rota pisca `/login` no boot offline | esperar a resolução de `onAuthStateChanged` antes de decidir; não redirecionar durante `carregando` |
 | `setInterval` é throttled em background e o timer de descanso atrasa | calcular por `Date.now()`, nunca acumular ticks |

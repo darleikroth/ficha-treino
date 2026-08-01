@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
+import BannerAtualizacao from "./components/BannerAtualizacao.vue";
 import { useInicializacao } from "./composables/useInicializacao.ts";
 
 const rota = useRoute();
@@ -23,6 +24,10 @@ const abas = [
 
 <template>
   <div class="app" :class="{ 'app--sem-nav': semNavegacao }">
+    <!-- Fora do RouterView: a atualização vale em qualquer tela, inclusive na
+         de login e na de execução do treino. -->
+    <BannerAtualizacao />
+
     <RouterView v-slot="{ Component }">
       <component :is="Component" />
     </RouterView>

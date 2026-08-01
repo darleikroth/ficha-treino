@@ -9,7 +9,17 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
-      registerType: "autoUpdate",
+      // `prompt`, não `autoUpdate` (divergência consciente de DD-A11).
+      //
+      // Com autoUpdate o service worker assume e RECARREGA A PÁGINA sozinho ao
+      // detectar versão nova. Num app que fica aberto durante o treino, isso
+      // acontece no meio de uma série: o dado sobrevive (está no IndexedDB),
+      // mas o timer de descanso zera e o card aberto se perde.
+      //
+      // Com prompt, o SW novo fica em `waiting` e quem decide a hora é o
+      // usuário, pelo BannerAtualizacao. O motivo de DD-A11 continua atendido
+      // — ninguém fica preso numa versão antiga —, só que sem interromper.
+      registerType: "prompt",
       includeAssets: ["favicon.svg", "icones/apple-touch-icon-180.png"],
       manifest: {
         name: "FichaTreino",
