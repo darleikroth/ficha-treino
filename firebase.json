@@ -9,6 +9,15 @@
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       },
       {
+        "source": "/",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "//": "Rotas do SPA. O Hosting casa `source` contra o CAMINHO DA REQUISIÇÃO, não contra o arquivo que o rewrite resolve — então /ciclo e /treino/T1 nunca casam com /index.html e cairiam no default de 1 hora, que é exatamente o que DD-A11 existe para impedir. `!(*.*)` pega segmento final sem ponto, ou seja, navegação e não arquivo.",
+        "source": "**/!(*.*)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
         "source": "/sw.js",
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       },
