@@ -143,6 +143,16 @@ Estas já custaram análise. Não redescubra.
 
 ## Estado da implementação
 
+**As sete fases estão concluídas.** O app está em produção no projeto
+`fichatreinos`, com `/metodologia/v1` semeada, regras publicadas e instalado no
+celular do autor. Daqui em diante o trabalho é incremental — mas as invariantes
+acima e as armadilhas abaixo continuam valendo, e cada uma delas custou análise.
+
+Sobrou uma dívida conhecida, registrada e não urgente: `scripts/importar-historico.ts`
+(DD-A16) ainda não existe. `historico/2025-4/` e `historico/atual/` estão
+preservados no repo como pré-histórico não numerado, fora da numeração de ciclos.
+
+
 Fases e checkpoints completos em `docs/ARQUITETURA-APP-V1.md` §10. **Não avance sem
 o checkpoint.** Atualize esta tabela ao concluir cada fase.
 
@@ -165,16 +175,15 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       *Feito:* 40 testes Vitest com `fake-indexeddb`, mais verificação no Chrome
       com IndexedDB real e reload de verdade. Dev server em porta fixa **5199** —
       ver armadilha do service worker vizinho.
-- [~] **Fase 3 — Auth e seed.** `firebase/app.ts`, `auth.ts`, `stores/auth.ts`,
+- [x] **Fase 3 — Auth e seed.** `firebase/app.ts`, `auth.ts`, `stores/auth.ts`,
       `scripts/seed-metodologia.ts`, `database.rules.json` publicado.
       *Checkpoint:* login Google ok; `/metodologia/v1` populado; reload offline
       mantém sessão; regras negam leitura de outro uid.
       *Feito:* regras publicadas em produção e cobertas por 12 testes contra o
-      emulador; seed validado no emulador (idempotente, com `--conferir`);
-      sessão sobrevive a reload com o backend de auth **inalcançável**; guard
-      coberto por teste de ordem.
-      *Falta (depende de ação sua):* clicar o login Google real e semear
-      `/metodologia/v1` em produção (precisa da chave da conta de serviço).
+      emulador; sessão sobrevive a reload com o backend de auth **inalcançável**;
+      guard coberto por teste de ordem; login Google real confirmado em produção.
+      `/metodologia/v1` semeada em produção — `--conferir` reporta 12 ciclos
+      idênticos ao bundle, e a config do usuário gravou com timestamp do servidor.
 - [x] **Fase 4 — Sync.** `firebase/sync.ts`, `conexao.ts`, `stores/sync.ts`.
       *Feito:* offline com 8 operações enfileiradas, servidor confirmado vazio
       pelo Admin SDK, drenagem em ordem causal até zero em 203ms; descida
@@ -202,7 +211,7 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       e retomou no exercício certo; ao religar, 54 operações drenaram e o servidor
       recebeu tudo; na segunda execução a tela mostra `+2,5 da última (bateu o topo
       da faixa)` com 62,5 kg preenchido.
-- [~] **Fase 7 — PWA, ícones e polimento.** `vite-plugin-pwa`, manifest, pipeline
+- [x] **Fase 7 — PWA, ícones e polimento.** `vite-plugin-pwa`, manifest, pipeline
       de ícones, wake lock, `Historico`, `Config`, export.
       *Checkpoint:* Lighthouse PWA installable = 100; instalar no Android e no iOS e
       conferir o ícone na home screen; com o app instalado e o celular em modo avião,
@@ -211,7 +220,7 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       derrubado**, o app abriu e renderizou o Ciclo 1 completo — as duas camadas de
       DD-A14 de uma vez. Manifest, os 4 PNG do manifest e o apple-touch-icon
       servidos em 200.
-      *Falta (só você pode):* instalar no Android e no iOS e conferir o ícone.
+      Instalação no celular confirmada pelo autor do projeto.
 
 ---
 
