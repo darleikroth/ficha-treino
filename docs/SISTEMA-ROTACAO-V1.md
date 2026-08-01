@@ -51,6 +51,13 @@ nunca sabe se está mais forte.
 Um exercício usado no ciclo *N* não pode reaparecer no ciclo *N+1*. Pode reaparecer em
 *N+2*. Isso evita que pools pequenos produzam "rotações" que não rotacionam nada.
 
+> **Correção 2026-08-01.** A primeira implementação comparava com o ciclo *N−2* em
+> vez de *N−1* (off-by-one em `gerarCiclo`), fazendo 16 dos 40 slots do Ciclo 3
+> repetirem o Ciclo 2 — silenciosamente, porque `validar()` só inspeciona um ciclo e
+> é estruturalmente cego a cooldown. Corrigido, mais `validarSequencia()` no core
+> para que a classe do erro não recorra. Ciclos 1 e 2 não mudaram; do 3 em diante a
+> saída é outra.
+
 ### DD-05 — Unicidade de família intra-treino
 Dois slots do mesmo treino não podem receber exercícios da mesma família de movimento
 (ex.: dois supinos inclinados, duas puxadas com pegada neutra). Cada exercício do pool

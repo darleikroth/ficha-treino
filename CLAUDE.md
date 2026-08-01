@@ -109,8 +109,12 @@ Estas já custaram análise. Não redescubra.
 | RTDB não garante ordem de chaves, e a ordem dos slots é semântica (DD-06 exige T1–T3 antes de T4/T5) | `deRtdb()` reordena — já implementado e testado com chaves embaralhadas |
 | `sessoes` cresce sem limite | nunca ler o nó inteiro; `query(ref, orderByKey(), limitToLast(30))` |
 | Trocar metodologia no meio de um ciclo invalida cargas em progresso | bloquear troca com ciclo em andamento (DD-A03) |
+| **`metodologiaVersao` versiona os dados, não o código do gerador.** Corrigir o gerador muda a saída sem que a metodologia mude uma linha | `config.geradorVersao` pinado junto; mudança de gerador que altere saída é bloqueada no meio de ciclo, igual DD-A03 · DD-A17 |
+| Ressincronizar `src-core/` sobrescreve os ajustes de layout do repo | após copiar para `src/core/`, reaponte os imports de `ferramentas/cli.ts` para `../src/core/` |
 | IndexedDB evictado no iOS Safari após ~7 dias sem uso | `navigator.storage.persist()` + sugerir instalar como PWA |
 | `<input type="number">` é hostil em mobile | `StepperNumero` com botões ≥44px e `inputmode="decimal"` |
+| Confiar em `validar()` para checar cooldown | `validar()` vê um ciclo só; use `validarSequencia()` · DD-A17 |
+| Corrigir o gerador pós-lançamento troca exercícios de quem está no meio do ciclo | `config.geradorVersao` + bloqueio mid-ciclo · DD-A17 |
 | `slot.reps` pode ser textual (`"6-10 / falha"`, `"Até a falha"`) e `slot.series` pode ser intervalo (`"3-4"`) | parsear defensivamente; `null` significa "sem progressão automática", não exceção |
 | **Achar que o service worker resolve o offline de dados** | SW cacheia o shell; dados de usuário são IndexedDB. As duas camadas são obrigatórias · DD-A14 |
 | Manifest só com SVG quebra instalabilidade no iOS | PNG 192/512 + maskable separado + `apple-touch-icon` 180 · DD-A15 |
@@ -127,13 +131,19 @@ Estas já custaram análise. Não redescubra.
 Fases e checkpoints completos em `docs/ARQUITETURA-APP-V1.md` §10. **Não avance sem
 o checkpoint.** Atualize esta tabela ao concluir cada fase.
 
-- [ ] **Fase 0 — Migração do VitePress.** Branch novo. Mover `src/days/**` para
-      `historico/` **antes** do scaffold. Deletar `.vitepress/`. Scaffold Vite+Vue.
+- [x] **Fase 0 — Migração do VitePress.** Branch `migracao-app`. Mover `src/days/**`
+      para `historico/` **antes** do scaffold. Deletar `.vitepress/`. Scaffold Vite+Vue.
       Atualizar `firebase.json` (public `dist`, rewrites SPA, headers) e `.gitignore`.
       *Checkpoint:* build gera `dist/`; emulador serve o app; nenhum markdown perdido.
-- [ ] **Fase 1 — Fundação.** Scaffold Vite+Vue+Pinia+Router; `src/core/` portado com
+      *Feito:* rota profunda devolve 200 pelo rewrite; `Cache-Control` conferido;
+      10 markdowns saíram como rename puro. Emulador de hosting na **5010** — a 5000
+      é do AirPlay no macOS.
+- [x] **Fase 1 — Fundação.** Scaffold Vite+Vue+Pinia+Router; `src/core/` portado com
       testes; `firebase.json` com headers de DD-A11.
-      *Checkpoint:* testes do core verdes, build gera bundle.
+      *Checkpoint:* testes do core verdes **incluindo `validarSequencia(12)` limpo**
+      (DD-A17), build gera bundle.
+      *Feito:* 31 testes verdes; TypeScript fixado em 5.x (o 7 não expõe `lib/tsc` e
+      quebra o `vue-tsc`).
 - [ ] **Fase 2 — IndexedDB e outbox.** `db/esquema.ts`, `idb.ts`, `outbox.ts`,
       `repos.ts`. Sem Firebase ainda.
       *Checkpoint:* sessão sobrevive a reload; outbox acumula e persiste.
@@ -183,8 +193,24 @@ const g = criarGerador(METODOLOGIA_V1, { indisponiveis, ciclosFixos });
 g.gerarCiclo(2);        // Ciclo completo, determinístico
 g.volumeSemanal();      // { peito: 17, costas: 20, ... }
 g.validarCatalogo();    // erros de integridade do catálogo
-g.validar(porSlot);     // violações de DD-05/DD-06
+g.validar(porSlot);     // violações de DD-05/DD-06 num ciclo isolado
+g.validarSequencia(12); // violações de DD-03/DD-04 ENTRE ciclos
 ```
+
+`validar()` recebe o mapeamento de um único ciclo e é estruturalmente cego a
+cooldown, que é propriedade entre ciclos — foi essa cegueira que deixou um
+off-by-one em `gerarCiclo` produzir 93 repetições N→N+1 sem um único aviso. Use
+`validarSequencia()` na suíte, não só `validar()` (DD-A17).
+
+O Ciclo 1 é a ficha real fixada (DD-11), não escolha do gerador: ele colide em
+DD-06 nos slots `T4-S2`, `T4-S5`, `T4-S7` e `T5-S4`. É o problema que a rotação
+existe para resolver, e por isso o CLI suprime os avisos do ciclo fixado. Do
+Ciclo 2 em diante, `validar()` sai vazio.
+
+`g.validarSequencia(12)` valida DD-03 e DD-04 **entre** ciclos e precisa estar na
+suíte de testes da Fase 1. `validar()` recebe um único ciclo e é estruturalmente cego
+a cooldown — foi essa cegueira que deixou um off-by-one produzir 93 violações de
+DD-04 sem um único aviso. Não confie só em `validar()`.
 
 `ferramentas/cli.ts` inspeciona ciclos fora do app. **Não incluir no bundle.**
 

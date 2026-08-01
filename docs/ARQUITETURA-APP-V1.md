@@ -136,6 +136,26 @@ próprio `fichatreinos.web.app`, o popup é same-origin e funciona. O boot do ap
 partir da persistência local (o Firebase Auth já persiste em IndexedDB), então
 abrir offline mantém a sessão.
 
+### DD-A17 — `geradorVersao` é pinado junto com `metodologiaVersao`
+`metodologiaVersao` versiona os **dados** da metodologia (pools, slots, séries,
+reps). Não cobre mudanças no **código** do gerador, e a distinção deixou de ser
+teórica: um off-by-one no cooldown de DD-04 foi corrigido em 2026-08-01, alterando a
+saída de todos os ciclos ≥ 3 sem que a metodologia mudasse uma linha.
+
+Antes do lançamento isso é gratuito — não existe usuário com ciclo em andamento.
+Depois, não é: uma correção no gerador trocaria os exercícios de alguém no meio da
+semana 4.
+
+Portanto: `config.geradorVersao` gravado junto de `metodologiaVersao`, e mudança de
+gerador que altere saída recebe o mesmo tratamento de DD-A03 — **bloqueada no meio de
+um ciclo**, aplicada na virada. Sessões já estão protegidas por DD-A05 (guardam o
+nome literal do exercício), então o histórico nunca é afetado; o risco é só o ciclo
+corrente.
+
+Corolário para os testes: `validarSequencia(12)` entra na suíte da Fase 1. Ele valida
+DD-03 e DD-04 **entre** ciclos, que é onde `validar()` é cego — foi essa cegueira que
+deixou 93 violações passarem sem um único aviso.
+
 ### DD-A13 — Ruptura limpa com o VitePress, não migração incremental
 O repo hoje é um site VitePress: `src/` contém markdown de conteúdo e `.vitepress/`
 contém tema e config. VitePress é Vite + Vue por baixo, mas é um SSG com router e
@@ -574,8 +594,9 @@ move.
 **Fase 1 — Fundação**
 Scaffold Vite + Vue + Pinia + Router. Copiar `gerador-treinos/src` para `src/core/`.
 Portar os testes. `firebase.json` com headers de DD-A11.
-*Checkpoint:* `npm test` verde no core; `npm run build` gera bundle; `--check` do
-gerador roda como script.
+*Checkpoint:* `npm test` verde no core, **incluindo `validarSequencia(12)` sem
+problemas** (DD-A17); `npm run build` gera bundle; `--check` do gerador roda como
+script.
 
 **Fase 2 — IndexedDB e outbox**
 `db/esquema.ts`, `db/idb.ts`, `db/outbox.ts`, `db/repos.ts`. Sem Firebase ainda:

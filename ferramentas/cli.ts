@@ -7,10 +7,12 @@
  *   node --experimental-strip-types ferramentas/cli.ts --diff 2 3      → o que muda entre dois ciclos
  */
 
-import { criarGerador } from "../src-core/gerador.ts";
-import { METODOLOGIA_V1 } from "../src-core/metodologia.ts";
-import { renderCiclo, renderJson } from "../src-core/render.ts";
-const { gerarCiclo, validarCatalogo, volumeSemanal, metodologia } = criarGerador(METODOLOGIA_V1);
+// O pacote de referência traz estes imports apontando para src-core/ (o layout do
+// pacote). No repo o core instalado é src/core/ — reaponte após cada sincronização.
+import { criarGerador } from "../src/core/gerador.ts";
+import { METODOLOGIA_V1 } from "../src/core/metodologia.ts";
+import { renderCiclo, renderJson } from "../src/core/render.ts";
+const { gerarCiclo, validarCatalogo, validarSequencia, volumeSemanal, metodologia } = criarGerador(METODOLOGIA_V1);
 const SLOTS = metodologia.slots;
 const EXERCICIOS = metodologia.exercicios;
 
@@ -30,13 +32,18 @@ function check() {
   const usos = new Map<string, number>();
   for (let c = 1; c <= 12; c++) {
     const ciclo = gerarCiclo(c);
-    const reais = ciclo.avisos.filter((a) => !ciclo.fixado);
+    // Avisos do Ciclo 1 descrevem a ficha fixada, não escolha do gerador.
+    const reais = ciclo.fixado ? [] : ciclo.avisos;
     totalAvisos += reais.length;
     log(`  Ciclo ${String(c).padStart(2)} · ${reais.length} aviso(s)${ciclo.fixado ? " (fixado)" : ""}`);
     for (const a of reais) log(`      ${a}`);
     for (const id of Object.values(ciclo.porSlot)) usos.set(id, (usos.get(id) ?? 0) + 1);
   }
   log(`\nTotal de avisos em ciclos gerados: ${totalAvisos}`);
+
+  const seq = validarSequencia(12);
+  log(seq.length ? `\nSequência (DD-03/DD-04): ${seq.length} problema(s)` : `\nSequência (DD-03/DD-04): OK`);
+  for (const e of seq) log(`  - ${e}`);
 
   const noPool = new Set(SLOTS.flatMap((s) => s.pool));
   const nunca = [...noPool].filter((id) => !usos.has(id));
