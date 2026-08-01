@@ -165,8 +165,8 @@ async function exportar(): Promise<void> {
           <strong>Adicionar à Tela de Início</strong>.
         </p>
         <p class="bloco__nota">
-          Instalado, o app abre em tela cheia e o armazenamento fica mais protegido — o Safari
-          apaga os dados de abas comuns depois de cerca de sete dias sem uso.
+          Instalado, o app abre em tela cheia e o armazenamento fica mais protegido — importante saber que o
+          Safari apaga os dados de abas comuns depois de cerca de sete dias sem uso.
         </p>
       </template>
 
