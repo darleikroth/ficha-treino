@@ -1,9 +1,11 @@
 import { ref, watch } from "vue";
 
 import { useAuthStore } from "../stores/auth.ts";
+import { useCargasStore } from "../stores/cargas.ts";
 import { useCicloStore } from "../stores/ciclo.ts";
 import { useConfigStore } from "../stores/config.ts";
 import { useMetodologiaStore } from "../stores/metodologia.ts";
+import { useSessaoStore } from "../stores/sessao.ts";
 import { useSyncStore } from "../stores/sync.ts";
 
 /**
@@ -18,6 +20,8 @@ export function useInicializacao() {
   const config = useConfigStore();
   const met = useMetodologiaStore();
   const ciclo = useCicloStore();
+  const cargas = useCargasStore();
+  const sessao = useSessaoStore();
   const sync = useSyncStore();
 
   const pronto = ref(false);
@@ -30,6 +34,8 @@ export function useInicializacao() {
       await config.carregar(uid);
       await met.carregar(uid, config.metodologiaVersao);
       await ciclo.carregar(uid);
+      await cargas.carregar(uid);
+      await sessao.carregar(uid);
       sync.iniciar(uid, config.metodologiaVersao);
       pronto.value = true;
     } catch (e) {
@@ -39,6 +45,8 @@ export function useInicializacao() {
 
   function desligar(): void {
     sync.parar();
+    sessao.parar();
+    cargas.parar();
     ciclo.parar();
     met.parar();
     config.parar();

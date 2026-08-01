@@ -121,6 +121,9 @@ Estas já custaram análise. Não redescubra.
 | **`ref()` do Vue devolve Proxy, e `structuredClone` rejeita Proxy.** Gravar no IndexedDB um objeto vindo de store estoura `DataCloneError` na primeira escrita, em produção | `planificar()` em `db/idb.ts` converte para dado puro antes do `put`; aplicado também no payload do outbox |
 | Releitura disparada por evento é assíncrona e pode aplicar valor velho por cima de escrita mais nova. Comparar `atualizadoEm` não resolve: duas mudanças seguidas caem no mesmo milissegundo | contador de sequência local em `stores/config.ts`; a releitura desiste se houve escrita durante o voo |
 | Importar `firebase_*.js` sem o `?v=` do Vite no console cria **segunda instância** do SDK; misturar as duas dá `permission_denied` ou estouro de pilha | ao depurar no browser, importe pelos módulos do app (`/src/firebase/…`), não pelo dep otimizado |
+| **`computed` sobre `Date.now()` fica cacheado para sempre** — o tempo não é dependência reativa, e o valor nunca mais muda | `pareceAbandonada()` é função, não `computed`. Vale para qualquer coisa que dependa só do relógio |
+| `meta.descanso` traz dois regimes num texto só (`"2-3 min nos compostos · 60-90s nos isoladores"`). Usar o maior dá 3 min de espera no aquecimento de manguito | `descansoDoSlot()` separa por `slot.ancora`, que por DD-03 marca os compostos pesados. É só o valor inicial — o timer tem "+30s" e "Pular" |
+| Reiniciar o emulador de Auth apaga as contas; o SDK rejeita o refresh token e desloga | esperado, não é bug do app. Ao testar sync com reinício de emulador, refaça o login |
 | IndexedDB evictado no iOS Safari após ~7 dias sem uso | `navigator.storage.persist()` + sugerir instalar como PWA |
 | `<input type="number">` é hostil em mobile | `StepperNumero` com botões ≥44px e `inputmode="decimal"` |
 | Confiar em `validar()` para checar cooldown | `validar()` vê um ciclo só; use `validarSequencia()` · DD-A17 |
@@ -188,10 +191,15 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       avanço a partir de valor desatualizado.
       *Decidido (DD-A16):* a ficha atual é o **Ciclo 1**; `historico/2025-4/` é
       pré-histórico não numerado. Core intacto.
-- [ ] **Fase 6 — Execução.** `core/progressao.ts`, `stores/sessao.ts`,
+- [x] **Fase 6 — Execução.** `core/progressao.ts`, `stores/sessao.ts`,
       `stores/cargas.ts`, view `Treino` e componentes. Fase mais longa.
       *Checkpoint:* treino completo registrável em modo avião, sem perder dado ao
       recarregar no meio.
+      *Feito:* com os emuladores derrubados, T1 inteiro registrado (26/26 séries em
+      8 exercícios); reload no meio preservou as 13 séries e as 27 operações da fila
+      e retomou no exercício certo; ao religar, 54 operações drenaram e o servidor
+      recebeu tudo; na segunda execução a tela mostra `+2,5 da última (bateu o topo
+      da faixa)` com 62,5 kg preenchido.
 - [ ] **Fase 7 — PWA, ícones e polimento.** `vite-plugin-pwa`, manifest, pipeline
       de ícones, wake lock, `Historico`, `Config`, export.
       *Checkpoint:* Lighthouse PWA installable = 100; instalar no Android e no iOS e
