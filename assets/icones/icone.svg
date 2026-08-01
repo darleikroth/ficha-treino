@@ -1,0 +1,22 @@
+<!--
+  Arte-fonte do ícone `purpose: "any"` (DD-A15).
+  A arte ocupa ~90% do quadro: este ícone NÃO sofre recorte adaptativo.
+  Para a versão maskable, ver icone-maskable.svg — é outra composição, não a
+  mesma arte reescalada.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0f1115" />
+
+  <g transform="rotate(-30 256 256)">
+    <!-- anilhas externas -->
+    <rect x="34" y="216" width="42" height="80" rx="16" fill="#2f6fd0" />
+    <rect x="436" y="216" width="42" height="80" rx="16" fill="#2f6fd0" />
+
+    <!-- anilhas internas -->
+    <rect x="86" y="176" width="62" height="160" rx="24" fill="#4c8dff" />
+    <rect x="364" y="176" width="62" height="160" rx="24" fill="#4c8dff" />
+
+    <!-- barra -->
+    <rect x="148" y="238" width="216" height="36" rx="18" fill="#e8eaf0" />
+  </g>
+</svg>

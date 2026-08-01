@@ -142,6 +142,15 @@ async function principal(): Promise<void> {
     return;
   }
 
+  if (!atual) {
+    // Sem este nó o app não funciona para ninguém: a regra de validação de
+    // `config.metodologiaVersao` exige que /metodologia/{versao} exista, então
+    // a primeira escrita de config de qualquer usuário novo é recusada com
+    // PERMISSION_DENIED — e como a drenagem para na primeira travada, a fila
+    // inteira congela sem nada sincronizar.
+    console.log(`/metodologia/${versao} ainda não existe em ${destino}. Publicando…`);
+  }
+
   if (atual && !forcar) {
     // Sobrescrever sem querer trocaria pools sob usuários com ciclo em
     // andamento, invalidando cargas em progresso (DD-A03).

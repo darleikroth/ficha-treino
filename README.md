@@ -42,7 +42,22 @@ npm run ciclo 2            # imprime o Ciclo 2 em Markdown
 npm run ciclo -- --check   # valida catálogo e simula 12 ciclos
 npm run ciclo -- --diff 2 3
 
+npm run icones     # rasteriza assets/icones/*.svg -> public/icones/*.png
 npm run deploy     # build + firebase deploy --only hosting
+```
+
+## ⚠️ Antes do primeiro login em qualquer ambiente
+
+Semeie a metodologia. As regras validam `config.metodologiaVersao` contra
+`/metodologia`, então sem esse nó a primeira escrita de config de um usuário
+novo é recusada com `PERMISSION_DENIED` — e a fila de sincronização congela na
+operação travada, sem nada subir.
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS=./chave-servico.json
+npm run seed -- --conferir   # compara com o bundle
+npm run seed                 # publica
+npm run seed -- --emulador   # mesma coisa, no emulador local
 ```
 
 As portas são fixas de propósito: o escopo de um service worker é a origem

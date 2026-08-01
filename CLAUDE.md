@@ -124,6 +124,8 @@ Estas já custaram análise. Não redescubra.
 | **`computed` sobre `Date.now()` fica cacheado para sempre** — o tempo não é dependência reativa, e o valor nunca mais muda | `pareceAbandonada()` é função, não `computed`. Vale para qualquer coisa que dependa só do relógio |
 | `meta.descanso` traz dois regimes num texto só (`"2-3 min nos compostos · 60-90s nos isoladores"`). Usar o maior dá 3 min de espera no aquecimento de manguito | `descansoDoSlot()` separa por `slot.ancora`, que por DD-03 marca os compostos pesados. É só o valor inicial — o timer tem "+30s" e "Pular" |
 | Reiniciar o emulador de Auth apaga as contas; o SDK rejeita o refresh token e desloga | esperado, não é bug do app. Ao testar sync com reinício de emulador, refaça o login |
+| **Sem `/metodologia/{versao}` semeada, o app não sincroniza para ninguém.** A regra valida `config.metodologiaVersao` contra `root.child('metodologia')`, então a primeira escrita de config de um usuário novo é recusada com `PERMISSION_DENIED`; como a fila para na primeira travada, nada mais sobe. Observado em produção: `/usuarios` ficou `null` | rodar `npm run seed` **antes** do primeiro login em qualquer ambiente. A tela de Ajustes mostra path e erro das travadas |
+| `beforeinstallprompt` dispara logo após o manifest ser processado, muito antes de qualquer tela lazy | a captura é efeito de import de `composables/useInstalacao.ts`, carregado por `main.ts` no boot. Registrar o listener dentro do componente perde o evento |
 | IndexedDB evictado no iOS Safari após ~7 dias sem uso | `navigator.storage.persist()` + sugerir instalar como PWA |
 | `<input type="number">` é hostil em mobile | `StepperNumero` com botões ≥44px e `inputmode="decimal"` |
 | Confiar em `validar()` para checar cooldown | `validar()` vê um ciclo só; use `validarSequencia()` · DD-A17 |
@@ -200,11 +202,16 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       e retomou no exercício certo; ao religar, 54 operações drenaram e o servidor
       recebeu tudo; na segunda execução a tela mostra `+2,5 da última (bateu o topo
       da faixa)` com 62,5 kg preenchido.
-- [ ] **Fase 7 — PWA, ícones e polimento.** `vite-plugin-pwa`, manifest, pipeline
+- [~] **Fase 7 — PWA, ícones e polimento.** `vite-plugin-pwa`, manifest, pipeline
       de ícones, wake lock, `Historico`, `Config`, export.
       *Checkpoint:* Lighthouse PWA installable = 100; instalar no Android e no iOS e
       conferir o ícone na home screen; com o app instalado e o celular em modo avião,
       abrir e ver o treino atual — valida as duas camadas de DD-A14 de uma vez.
+      *Feito:* SW ativo com 31 recursos precacheados; **com o servidor de origem
+      derrubado**, o app abriu e renderizou o Ciclo 1 completo — as duas camadas de
+      DD-A14 de uma vez. Manifest, os 4 PNG do manifest e o apple-touch-icon
+      servidos em 200.
+      *Falta (só você pode):* instalar no Android e no iOS e conferir o ícone.
 
 ---
 

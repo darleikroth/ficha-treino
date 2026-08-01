@@ -31,6 +31,10 @@ export function useInicializacao() {
     pronto.value = false;
     erro.value = null;
     try {
+      // Antes de tudo: sem persistência concedida, o iOS pode evictar o
+      // IndexedDB depois de ~7 dias sem uso (ARQUITETURA §5).
+      void config.pedirArmazenamentoPersistente();
+
       await config.carregar(uid);
       await met.carregar(uid, config.metodologiaVersao);
       await ciclo.carregar(uid);

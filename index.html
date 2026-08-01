@@ -9,6 +9,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- O iOS ignora o manifest: sem esta tag não há ícone na tela de início,
+         e o Safari usa um screenshot genérico da página (DD-A15). -->
+    <link rel="apple-touch-icon" href="/icones/apple-touch-icon-180.png" />
+    <meta name="apple-mobile-web-app-title" content="FichaTreino" />
     <title>FichaTreino</title>
   </head>
   <body>

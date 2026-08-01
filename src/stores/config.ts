@@ -102,6 +102,25 @@ export const useConfigStore = defineStore("config", () => {
     await salvar({ indisponiveis: mapa });
   }
 
+  /**
+   * Pede armazenamento persistente.
+   *
+   * O iOS Safari evicta IndexedDB depois de ~7 dias sem uso. Para quem treina
+   * 5x por semana é irrelevante, mas custa uma chamada — e o app instalado tem
+   * garantia melhor que a aba (ARQUITETURA §5).
+   */
+  async function pedirArmazenamentoPersistente(): Promise<boolean> {
+    if (!navigator.storage?.persist) return false;
+    if (await navigator.storage.persisted()) return true;
+    return navigator.storage.persist();
+  }
+
+  /** Export completo, lido do IndexedDB: funciona offline. */
+  async function exportar(uid: string): Promise<void> {
+    const { baixarJson, montarExportacao, nomeDoArquivo } = await import("../db/exportar.ts");
+    baixarJson(await montarExportacao(uid), nomeDoArquivo());
+  }
+
   function parar(): void {
     cancelar?.();
     cancelar = null;
@@ -117,6 +136,8 @@ export const useConfigStore = defineStore("config", () => {
     recarregar,
     salvar,
     definirIndisponivel,
+    pedirArmazenamentoPersistente,
+    exportar,
     parar,
   };
 });

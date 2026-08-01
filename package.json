@@ -3,8 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run icones && vite",
+    "prebuild": "npm run icones",
     "build": "vue-tsc -b && vite build",
+    "icones": "node --experimental-strip-types scripts/gerar-icones.ts",
     "preview": "vite preview",
     "test": "npm run test:core && npm run test:app",
     "test:core": "node --experimental-strip-types --test src/core/__tests__/*.test.ts",
@@ -28,8 +30,10 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "fake-indexeddb": "^6.2.5",
     "firebase-admin": "^14.2.0",
+    "sharp": "^0.35.3",
     "typescript": "^5.9.3",
     "vite": "^8.2.0",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.10",
     "vue-tsc": "^3.3.9"
   }

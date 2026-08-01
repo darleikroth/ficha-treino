@@ -1,0 +1,32 @@
+<!--
+  Arte-fonte do ícone `purpose: "maskable"` (DD-A15).
+
+  O Android recorta em círculo, squircle, gota ou quadrado arredondado conforme
+  o launcher. Só o círculo inscrito de 80% do lado é garantido visível, então a
+  arte vive dentro desse raio e o fundo sangra até a borda.
+
+  É composição diferente, não a mesma arte reescalada: aqui não há cantos
+  arredondados (quem arredonda é a máscara) e o halter é mais curto.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- sangria: o fundo precisa cobrir o quadro inteiro -->
+  <rect width="512" height="512" fill="#0f1115" />
+
+  <!--
+    Safe zone: círculo inscrito de raio ~205 (80% do lado). Nada de arte fora.
+    O `scale(1.3)` ocupa esse raio de verdade — o canto mais distante fica a
+    ~190 do centro. Sem ele o ícone instalado sai visivelmente menor que os
+    vizinhos na home screen.
+  -->
+  <g transform="rotate(-30 256 256)">
+    <g transform="translate(256 256) scale(1.3) translate(-256 -256)">
+      <rect x="112" y="230" width="34" height="52" rx="13" fill="#2f6fd0" />
+      <rect x="366" y="230" width="34" height="52" rx="13" fill="#2f6fd0" />
+
+      <rect x="152" y="204" width="50" height="104" rx="20" fill="#4c8dff" />
+      <rect x="310" y="204" width="50" height="104" rx="20" fill="#4c8dff" />
+
+      <rect x="202" y="240" width="108" height="32" rx="16" fill="#e8eaf0" />
+    </g>
+  </g>
+</svg>
