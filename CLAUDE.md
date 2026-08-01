@@ -9,10 +9,25 @@ Firebase (Auth Google, Realtime Database, Hosting) · IndexedDB · PWA
 
 **Idioma:** todo código, comentário, commit e UI em pt-BR.
 
-**Ponto de partida:** o repo hoje é um site VitePress (markdown em `src/`,
-tema em `.vitepress/`). A migração para SPA é a Fase 0 e é **destrutiva sobre o
-`src/` atual** — mova `src/days/**` para `historico/` antes de qualquer scaffold
-(DD-A13, DD-A16).
+---
+
+## Regra de execução — leia antes de rodar qualquer coisa
+
+**Nunca suba serviços nem inicie testes de browser por conta própria neste
+projeto.** Isso inclui, entre outros:
+
+- `npm run dev`, `npm run preview`, `vite` em qualquer forma
+- `firebase emulators:start` e qualquer emulador
+- abrir o app no Chrome, dirigir a extensão, navegar ou clicar na aplicação
+
+Quem sobe serviço e quem testa no browser é o autor do projeto. Se uma
+verificação exigir app rodando, **pergunte** — ou peça que ele suba o serviço e
+diga quando estiver no ar. Vale igual para produção: não faça deploy sem pedido
+explícito.
+
+O que continua liberado sem perguntar: `npm run build`, `npm test`,
+`npm run test:core`, `npm run test:app`, `npm run ciclo`, `npm run icones`,
+leitura de arquivos, `git` local e inspeção com `firebase database:get`.
 
 ---
 
@@ -23,7 +38,7 @@ arquivos.
 
 | Arquivo | Conteúdo |
 |---|---|
-| `docs/ARQUITETURA-APP-V1.md` | Arquitetura do app. DD-A01 a DD-A12, modelo de dados RTDB, regras de segurança, camadas, offline-first, contratos das stores, ordem de implementação com checkpoints. |
+| `docs/ARQUITETURA-APP-V1.md` | Arquitetura do app. DD-A01 a DD-A17, modelo de dados RTDB, regras de segurança, camadas, offline-first, contratos das stores, ordem de implementação com checkpoints. |
 | `docs/SISTEMA-ROTACAO-V1.md` | Metodologia de treino. DD-01 a DD-11, estrutura de slots, pools de exercícios, regras de rotação. É a especificação que `src/core/` implementa. |
 
 Quando uma decisão precisar mudar, edite o documento e bumpe a versão. Não deixe
