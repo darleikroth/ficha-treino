@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 
+import { useAuthStore } from "../stores/auth.ts";
+import { aguardarResolucao, decidirRota } from "./guarda.ts";
+
 /**
  * Rotas de ARQUITETURA §7.
  *
@@ -31,6 +34,18 @@ export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: rotas,
   scrollBehavior: () => ({ top: 0 }),
+});
+
+router.beforeEach(async (destino) => {
+  const auth = useAuthStore();
+  auth.iniciar();
+
+  // O await é o ponto todo: o primeiro disparo de onAuthStateChanged vem da
+  // persistência local, sem rede. Decidir antes dele faz o app piscar /login a
+  // cada abertura offline (DD-A12).
+  await aguardarResolucao(auth);
+
+  return decidirRota(auth, destino);
 });
 
 export default router;

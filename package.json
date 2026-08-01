@@ -9,7 +9,11 @@
     "test": "npm run test:core && npm run test:app",
     "test:core": "node --experimental-strip-types --test src/core/__tests__/*.test.ts",
     "test:app": "vitest run",
+    "test:regras": "vitest run --config vitest.regras.config.ts",
     "ciclo": "node --experimental-strip-types ferramentas/cli.ts",
+    "seed": "node --experimental-strip-types scripts/seed-metodologia.ts",
+    "emuladores": "firebase emulators:start --only auth,database,hosting",
+    "regras": "firebase deploy --only database",
     "deploy": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
@@ -19,9 +23,11 @@
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@types/node": "^26.1.2",
     "@vitejs/plugin-vue": "^6.0.8",
     "fake-indexeddb": "^6.2.5",
+    "firebase-admin": "^14.2.0",
     "typescript": "^5.9.3",
     "vite": "^8.2.0",
     "vitest": "^4.1.10",

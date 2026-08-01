@@ -113,6 +113,9 @@ Estas já custaram análise. Não redescubra.
 | Ressincronizar `src-core/` sobrescreve os ajustes de layout do repo | após copiar para `src/core/`, reaponte os imports de `ferramentas/cli.ts` para `../src/core/` |
 | **Service worker de outro projeto na porta 5173.** O escopo de um SW é a origem inteira, e 5173 é o default de todo projeto Vite: um app com PWA registrado ali passa a servir o shell dele no lugar do nosso — o app some e sobra o cache do vizinho, com os módulos ainda vindo da rede (o que disfarça o sintoma) | portas fixas próprias: dev **5199**, preview **5200** (`vite.config.ts`) |
 | `await` de algo que não é requisição do IDB dentro de uma transação a fecha no meio | em `comTransacao`, só encadeie `await pedido(...)`; emita requisições paralelas antes do primeiro `await` |
+| **O snippet web do Firebase não traz `databaseURL`** enquanto o RTDB não existir. Sem ela o app sobe, o login funciona e a primeira escrita morre calada | `VITE_FIREBASE_DATABASE_URL` é obrigatória e validada em `firebase/app.ts`, que falha alto no boot |
+| Comparar o JSON do RTDB com o do bundle dá falso positivo: mapa de chaves inteiras contíguas volta como **array** (foi o caso de `progressao`) | comparar depois de `deRtdb()`, e conferir os ciclos gerados — não os bytes |
+| O flash de `/login` no boot offline não aparece no URL final: a tela de login rebate para o destino assim que a sessão resolve | testar a **ordem** da decisão (`src/stores/__tests__/guarda.test.ts`), não o destino |
 | IndexedDB evictado no iOS Safari após ~7 dias sem uso | `navigator.storage.persist()` + sugerir instalar como PWA |
 | `<input type="number">` é hostil em mobile | `StepperNumero` com botões ≥44px e `inputmode="decimal"` |
 | Confiar em `validar()` para checar cooldown | `validar()` vê um ciclo só; use `validarSequencia()` · DD-A17 |
@@ -152,10 +155,16 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       *Feito:* 40 testes Vitest com `fake-indexeddb`, mais verificação no Chrome
       com IndexedDB real e reload de verdade. Dev server em porta fixa **5199** —
       ver armadilha do service worker vizinho.
-- [ ] **Fase 3 — Auth e seed.** `firebase/app.ts`, `auth.ts`, `stores/auth.ts`,
+- [~] **Fase 3 — Auth e seed.** `firebase/app.ts`, `auth.ts`, `stores/auth.ts`,
       `scripts/seed-metodologia.ts`, `database.rules.json` publicado.
       *Checkpoint:* login Google ok; `/metodologia/v1` populado; reload offline
       mantém sessão; regras negam leitura de outro uid.
+      *Feito:* regras publicadas em produção e cobertas por 12 testes contra o
+      emulador; seed validado no emulador (idempotente, com `--conferir`);
+      sessão sobrevive a reload com o backend de auth **inalcançável**; guard
+      coberto por teste de ordem.
+      *Falta (depende de ação sua):* clicar o login Google real e semear
+      `/metodologia/v1` em produção (precisa da chave da conta de serviço).
 - [ ] **Fase 4 — Sync.** `firebase/sync.ts`, `conexao.ts`, `stores/sync.ts`.
       *Checkpoint (o mais importante do projeto):* com DevTools offline, registrar
       dados; voltar online e ver o outbox drenar **em ordem**; `pendentes` chega a
