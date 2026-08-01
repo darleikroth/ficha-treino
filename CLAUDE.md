@@ -116,6 +116,8 @@ Estas já custaram análise. Não redescubra.
 | **O snippet web do Firebase não traz `databaseURL`** enquanto o RTDB não existir. Sem ela o app sobe, o login funciona e a primeira escrita morre calada | `VITE_FIREBASE_DATABASE_URL` é obrigatória e validada em `firebase/app.ts`, que falha alto no boot |
 | Comparar o JSON do RTDB com o do bundle dá falso positivo: mapa de chaves inteiras contíguas volta como **array** (foi o caso de `progressao`) | comparar depois de `deRtdb()`, e conferir os ciclos gerados — não os bytes |
 | O flash de `/login` no boot offline não aparece no URL final: a tela de login rebate para o destino assim que a sessão resolve | testar a **ordem** da decisão (`src/stores/__tests__/guarda.test.ts`), não o destino |
+| **`cicloAtual` resolve por "último a chegar", não por timestamp.** Verificado: um device offline gravou 9, o servidor recebeu 7 depois, e ao drenar o 9 venceu — um aparelho esquecido offline pode rebobinar o ciclo e invalidar cargas em progresso | `avancarCiclo()` da Fase 5 **precisa** ser `transaction()` no RTDB exigindo online (ARQUITETURA §5). `gravarConfig` genérico não serve para esse campo |
+| Um snapshot antigo do servidor chegando durante o boot apaga série recém-registrada | os listeners só aplicam com o outbox vazio (`localEstaAdiantado` em `firebase/sync.ts`). Enquanto houver escrita por subir, o local manda |
 | IndexedDB evictado no iOS Safari após ~7 dias sem uso | `navigator.storage.persist()` + sugerir instalar como PWA |
 | `<input type="number">` é hostil em mobile | `StepperNumero` com botões ≥44px e `inputmode="decimal"` |
 | Confiar em `validar()` para checar cooldown | `validar()` vê um ciclo só; use `validarSequencia()` · DD-A17 |
@@ -165,7 +167,11 @@ o checkpoint.** Atualize esta tabela ao concluir cada fase.
       coberto por teste de ordem.
       *Falta (depende de ação sua):* clicar o login Google real e semear
       `/metodologia/v1` em produção (precisa da chave da conta de serviço).
-- [ ] **Fase 4 — Sync.** `firebase/sync.ts`, `conexao.ts`, `stores/sync.ts`.
+- [x] **Fase 4 — Sync.** `firebase/sync.ts`, `conexao.ts`, `stores/sync.ts`.
+      *Feito:* offline com 8 operações enfileiradas, servidor confirmado vazio
+      pelo Admin SDK, drenagem em ordem causal até zero em 203ms; descida
+      (listener → IndexedDB) validada com escrita de "outro dispositivo";
+      `serverTimestamp()` resolvido no servidor e marcador sem vazar.
       *Checkpoint (o mais importante do projeto):* com DevTools offline, registrar
       dados; voltar online e ver o outbox drenar **em ordem**; `pendentes` chega a
       zero. Se isso não estiver sólido, a Fase 6 vai parecer funcionar e não vai.
