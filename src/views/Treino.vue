@@ -192,11 +192,20 @@ async function descartar(): Promise<void> {
             Descartar sessão
           </button>
           <div v-else class="encerrar__confirma">
-            <span>Descartar tudo o que foi registrado?</span>
-            <button class="encerrar__sim" type="button" @click="descartar">Descartar</button>
-            <button class="encerrar__nao" type="button" @click="confirmandoDescarte = false">
-              Cancelar
-            </button>
+            <p class="encerrar__pergunta">
+              {{
+                sessao.progresso.feitas === 1
+                  ? "Descartar a série já registrada?"
+                  : `Descartar as ${sessao.progresso.feitas} séries já registradas?`
+              }}
+              Não dá para desfazer.
+            </p>
+            <div class="encerrar__acoes">
+              <button class="encerrar__nao" type="button" @click="confirmandoDescarte = false">
+                Cancelar
+              </button>
+              <button class="encerrar__sim" type="button" @click="descartar">Descartar</button>
+            </div>
           </div>
         </section>
       </template>
@@ -331,15 +340,27 @@ async function descartar(): Promise<void> {
   text-decoration: underline;
 }
 
+/* Pergunta em cima, botões embaixo em colunas iguais. Antes era um flex-wrap
+   em linha: a pergunta empurrava "Descartar" para o lado e "Cancelar" caía
+   sozinho na linha de baixo, desalinhado. */
 .encerrar__confirma {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.75rem;
   border: 1px solid var(--perigo);
   border-radius: var(--raio);
-  font-size: 0.875rem;
+}
+
+.encerrar__pergunta {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.encerrar__acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
 }
 
 .encerrar__sim,
@@ -349,8 +370,11 @@ async function descartar(): Promise<void> {
   border: 1px solid var(--borda);
   border-radius: var(--raio);
   background: none;
+  font-size: 0.9375rem;
 }
 
+/* Ação destrutiva à direita e sem preenchimento sólido: o toque acidental mais
+   provável é no lado do polegar, e "Cancelar" é o destino seguro. */
 .encerrar__sim {
   border-color: var(--perigo);
   color: var(--perigo);

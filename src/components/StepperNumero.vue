@@ -125,7 +125,9 @@ function confirmarEdicao(): void {
 
 .stepper__controles {
   display: grid;
-  grid-template-columns: var(--toque-min) 1fr var(--toque-min);
+  /* minmax(0, 1fr) no meio: sem o 0, o conteúdo impede o encolhimento e o
+     botão da direita é empurrado para fora do card. */
+  grid-template-columns: var(--toque-min) minmax(0, 1fr) var(--toque-min);
   align-items: stretch;
   gap: 0.25rem;
 }

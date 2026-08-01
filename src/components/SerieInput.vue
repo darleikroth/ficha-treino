@@ -86,10 +86,24 @@ function registrar(): void {
   font-size: 0.8125rem;
 }
 
+/*
+  Duas linhas, não três colunas.
+  Cada stepper tem dois alvos de 44px mais o valor legível no meio: ~118px de
+  mínimo. Três lado a lado passam de 350px e estouram a largura do card num
+  telefone de 390px — o "+" do RIR ficava cortado fora da tela. Diminuir os
+  botões não é opção: 44px é o alvo mínimo de toque.
+
+  Peso ocupa a linha inteira por ser o campo mais mexido; reps e RIR dividem a
+  de baixo.
+*/
 .serie__campos {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
+}
+
+.serie__campos > :first-child {
+  grid-column: 1 / -1;
 }
 
 /* Alvo generoso: é o botão apertado com a mão suada, entre séries. */
