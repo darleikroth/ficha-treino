@@ -14,6 +14,7 @@ import {
   MARCA_TS_SERVIDOR,
   type Carga,
   type Config,
+  type ExercicioFeito,
   type Serie,
   type Sessao,
   type StatusSessao,
@@ -276,6 +277,62 @@ export async function removerSerie(
     await gravar(tx, "sessoes", atualizada);
     enfileirar(tx, {
       path: caminhos.caminhoSerie(atual.uid, sessaoId, slotId, indice),
+      op: "remove",
+    });
+
+    return atualizada;
+  });
+
+  notificar("sessoes");
+  return sessao;
+}
+
+/**
+ * Modo simples (DD-A18): marca o exercício inteiro como feito, num registro só.
+ * Não grava em `cargas` — sem peso e reps não há progressão a derivar.
+ */
+export async function marcarExercicio(
+  sessaoId: string,
+  slotId: string,
+  registro: ExercicioFeito,
+): Promise<Sessao> {
+  const sessao = await comTransacao(["sessoes", "outbox"], "readwrite", async (tx) => {
+    const atual = await ler<Sessao>(tx, "sessoes", sessaoId);
+    if (!atual) throw new Error(`Sessão inexistente: ${sessaoId}`);
+
+    const atualizada: Sessao = {
+      ...atual,
+      exercicios: { ...atual.exercicios, [slotId]: registro },
+    };
+
+    await gravar(tx, "sessoes", atualizada);
+    enfileirar(tx, {
+      path: caminhos.caminhoExercicioFeito(atual.uid, sessaoId, slotId),
+      op: "set",
+      payload: registro,
+    });
+
+    return atualizada;
+  });
+
+  notificar("sessoes");
+  return sessao;
+}
+
+/** Desfazer do modo simples: o toque errado é tão comum quanto a digitação errada. */
+export async function desmarcarExercicio(sessaoId: string, slotId: string): Promise<Sessao> {
+  const sessao = await comTransacao(["sessoes", "outbox"], "readwrite", async (tx) => {
+    const atual = await ler<Sessao>(tx, "sessoes", sessaoId);
+    if (!atual) throw new Error(`Sessão inexistente: ${sessaoId}`);
+
+    const exercicios = { ...atual.exercicios };
+    delete exercicios[slotId];
+
+    const atualizada: Sessao = { ...atual, exercicios };
+    await gravar(tx, "sessoes", atualizada);
+
+    enfileirar(tx, {
+      path: caminhos.caminhoExercicioFeito(atual.uid, sessaoId, slotId),
       op: "remove",
     });
 

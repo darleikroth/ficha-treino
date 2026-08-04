@@ -78,7 +78,8 @@ a causalidade entre "criar sessão" e "adicionar série a ela".
 Cada série persiste `exercicioId`, `exercicioNome` e `metodologiaVersao`. Desacopla
 o histórico da metodologia: dá para descartar uma versão antiga do RTDB sem
 corromper sessões, e o gráfico de progressão continua legível se o id sair do
-catálogo.
+catálogo. Vale igual para as marcações do modo simples
+(`sessoes/{id}/exercicios/{slotId}`, DD-A18): id **e** nome, sempre.
 
 ### 5. `views/` importa apenas `stores/`
 Regra de dependência, de dentro para fora:

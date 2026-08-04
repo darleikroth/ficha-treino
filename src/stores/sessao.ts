@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref, shallowRef } from "vue";
 
 import { bateuTopo, seriesAlvo } from "../core/progressao.ts";
-import type { Carga, Serie, Sessao } from "../db/esquema.ts";
+import type { Carga, ExercicioFeito, Serie, Sessao } from "../db/esquema.ts";
 import { aoMudar } from "../db/eventos.ts";
 import * as repos from "../db/repos.ts";
 import { useCicloStore } from "./ciclo.ts";
@@ -52,9 +52,20 @@ export const useSessaoStore = defineStore("sessao", () => {
       .map((i) => doSlot[String(i)]);
   }
 
+  /** Marcação do modo simples para um slot (DD-A18). */
+  function exercicioFeito(slotId: string): ExercicioFeito | null {
+    return ativa.value?.exercicios?.[slotId] ?? null;
+  }
+
   const progresso = computed(() => {
     const treino = treinoDaSessao.value;
     if (!treino) return { feitas: 0, total: 0 };
+
+    // DD-A18: no modo simples a unidade de progresso é o exercício, não a série.
+    if (config.modoRegistro === "simples") {
+      const feitas = treino.itens.filter((item) => exercicioFeito(item.slot.id)).length;
+      return { feitas, total: treino.itens.length };
+    }
 
     let total = 0;
     let feitas = 0;
@@ -174,6 +185,32 @@ export const useSessaoStore = defineStore("sessao", () => {
     ativa.value = await repos.removerSerie(sessao.id, slotId, indice);
   }
 
+  /**
+   * Modo simples (DD-A18): um toque marca o exercício inteiro como feito, sem
+   * peso nem reps. Nada é gravado em `cargas` — sem dado, sem sugestão.
+   */
+  async function marcarExercicio(slotId: string): Promise<void> {
+    const sessao = ativa.value;
+    if (!sessao) throw new Error("Nenhuma sessão ativa.");
+
+    const item = treinoDaSessao.value?.itens.find((i) => i.slot.id === slotId);
+    if (!item) throw new Error(`Slot fora do treino: ${slotId}`);
+
+    const registro: ExercicioFeito = {
+      exercicioId: item.exercicioId,
+      exercicioNome: item.exercicio?.nome ?? item.exercicioId,
+      concluidoEm: Date.now(),
+    };
+
+    ativa.value = await repos.marcarExercicio(sessao.id, slotId, registro);
+  }
+
+  async function desmarcarExercicio(slotId: string): Promise<void> {
+    const sessao = ativa.value;
+    if (!sessao) return;
+    ativa.value = await repos.desmarcarExercicio(sessao.id, slotId);
+  }
+
   async function finalizar(uid: string): Promise<void> {
     const sessao = ativa.value;
     if (!sessao) return;
@@ -206,24 +243,30 @@ export const useSessaoStore = defineStore("sessao", () => {
     progresso,
     completa,
     seriesDoSlot,
+    exercicioFeito,
     carregar,
     recarregar,
     iniciar,
     registrarSerie,
     desfazerSerie,
+    marcarExercicio,
+    desmarcarExercicio,
     finalizar,
     descartar,
     parar,
   };
 });
 
-/** Momento da última série registrada, ou o início da sessão. */
+/** Momento do último registro — série ou marcação — ou o início da sessão. */
 function ultimaAtividade(sessao: Sessao): number {
   let ultima = sessao.inicioEm;
   for (const doSlot of Object.values(sessao.series)) {
     for (const serie of Object.values(doSlot)) {
       if (serie.concluidaEm > ultima) ultima = serie.concluidaEm;
     }
+  }
+  for (const feito of Object.values(sessao.exercicios ?? {})) {
+    if (feito.concluidoEm > ultima) ultima = feito.concluidoEm;
   }
   return ultima;
 }

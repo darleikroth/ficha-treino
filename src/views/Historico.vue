@@ -64,10 +64,14 @@ const vazio = computed(() => !historico.carregando && historico.concluidas.lengt
           <strong>{{ s.treinoId }}</strong>
           <span class="sessao__data">{{ formatarData(s.inicioEm) }}</span>
         </div>
+        <!-- Sessão do modo simples (DD-A18) não tem séries: mostra exercícios marcados. -->
         <p class="sessao__meta">
           Ciclo {{ s.ciclo }} · Semana {{ s.semana }} ·
-          {{ historico.totalDeSeries(s) }} séries ·
-          {{ formatarPeso(historico.volumeDaSessao(s)) }} kg de volume ·
+          <template v-if="historico.totalDeSeries(s)">
+            {{ historico.totalDeSeries(s) }} séries ·
+            {{ formatarPeso(historico.volumeDaSessao(s)) }} kg de volume ·
+          </template>
+          <template v-else>{{ historico.totalDeExercicios(s) }} exercícios · </template>
           {{ duracao(s.inicioEm, s.fimEm) }}
         </p>
       </article>

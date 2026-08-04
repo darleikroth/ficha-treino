@@ -21,6 +21,7 @@ export const padraoDeConfig = (uid: string): Config => ({
   semanaManual: null,
   incrementoPadrao: 2.5,
   unidade: "kg",
+  modoRegistro: "simples",
   indisponiveis: {},
   atualizadoEm: 0,
 });
@@ -41,6 +42,9 @@ export const useConfigStore = defineStore("config", () => {
   );
 
   const incremento = computed(() => config.value?.incrementoPadrao ?? 2.5);
+
+  /** DD-A18: configs gravadas antes do campo existir caem no modo simples. */
+  const modoRegistro = computed(() => config.value?.modoRegistro ?? "simples");
 
   let cancelar: (() => void) | null = null;
 
@@ -132,6 +136,7 @@ export const useConfigStore = defineStore("config", () => {
     metodologiaVersao,
     indisponiveis,
     incremento,
+    modoRegistro,
     carregar,
     recarregar,
     salvar,

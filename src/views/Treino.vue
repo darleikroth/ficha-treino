@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import ExercicioCard from "../components/ExercicioCard.vue";
+import ExercicioCheck from "../components/ExercicioCheck.vue";
 import IndicadorSync from "../components/IndicadorSync.vue";
 import TimerDescanso from "../components/TimerDescanso.vue";
 import { useWakeLock } from "../composables/useWakeLock.ts";
@@ -29,6 +30,9 @@ const timer = ref<InstanceType<typeof TimerDescanso> | null>(null);
 
 const treino = computed(() => ciclo.treino(props.treinoId));
 const emAndamento = computed(() => sessao.ativa?.treinoId === props.treinoId);
+
+/** DD-A18: no modo simples a tela é uma checklist — sem carga, reps ou timer. */
+const modoSimples = computed(() => config.modoRegistro === "simples");
 
 /**
  * Descanso sugerido para um slot.
@@ -108,6 +112,20 @@ async function registrar(slotId: string, dados: { peso: number; reps: number; ri
   }
 }
 
+/** Modo simples: um toque marca, o mesmo toque desfaz. */
+async function alternarExercicio(slotId: string): Promise<void> {
+  if (sessao.exercicioFeito(slotId)) await sessao.desmarcarExercicio(slotId);
+  else await sessao.marcarExercicio(slotId);
+}
+
+const perguntaDescarte = computed(() => {
+  const n = sessao.progresso.feitas;
+  if (modoSimples.value) {
+    return n === 1 ? "Descartar o exercício já marcado?" : `Descartar os ${n} exercícios já marcados?`;
+  }
+  return n === 1 ? "Descartar a série já registrada?" : `Descartar as ${n} séries já registradas?`;
+});
+
 async function finalizar(): Promise<void> {
   if (!auth.uid) return;
   await sessao.finalizar(auth.uid);
@@ -154,11 +172,22 @@ async function descartar(): Promise<void> {
           <div class="barra__preenchida" :style="{ width: `${(sessao.progresso.feitas / Math.max(1, sessao.progresso.total)) * 100}%` }" />
         </div>
         <p class="progresso-texto">
-          {{ sessao.progresso.feitas }} de {{ sessao.progresso.total }} séries
+          {{ sessao.progresso.feitas }} de {{ sessao.progresso.total }}
+          {{ modoSimples ? "exercícios" : "séries" }}
           <span v-if="wakeLock.ativo.value" class="progresso-texto__tela">· tela travada acesa</span>
         </p>
 
-        <div class="lista">
+        <div v-if="modoSimples" class="lista">
+          <ExercicioCheck
+            v-for="item in treino.itens"
+            :key="item.slot.id"
+            :item="item"
+            :feito="Boolean(sessao.exercicioFeito(item.slot.id))"
+            @alternar="alternarExercicio(item.slot.id)"
+          />
+        </div>
+
+        <div v-else class="lista">
           <ExercicioCard
             v-for="item in treino.itens"
             :key="item.slot.id"
@@ -176,7 +205,7 @@ async function descartar(): Promise<void> {
           />
         </div>
 
-        <TimerDescanso ref="timer" :segundos="descansoPadrao" />
+        <TimerDescanso v-if="!modoSimples" ref="timer" :segundos="descansoPadrao" />
 
         <section class="encerrar">
           <button class="encerrar__concluir" type="button" @click="finalizar">
@@ -193,11 +222,7 @@ async function descartar(): Promise<void> {
           </button>
           <div v-else class="encerrar__confirma">
             <p class="encerrar__pergunta">
-              {{
-                sessao.progresso.feitas === 1
-                  ? "Descartar a série já registrada?"
-                  : `Descartar as ${sessao.progresso.feitas} séries já registradas?`
-              }}
+              {{ perguntaDescarte }}
               Não dá para desfazer.
             </p>
             <div class="encerrar__acoes">

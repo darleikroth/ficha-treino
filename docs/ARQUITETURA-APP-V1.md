@@ -172,6 +172,23 @@ Corolário para os testes: `validarSequencia(12)` entra na suíte da Fase 1. Ele
 DD-03 e DD-04 **entre** ciclos, que é onde `validar()` é cego — foi essa cegueira que
 deixou 93 violações passarem sem um único aviso.
 
+### DD-A18 — Dois modos de registro; o simples é o padrão
+Registrar série a série (peso, reps, RIR) paga a fricção quando se quer a progressão
+de carga assistida — mas é fricção, e no uso real ela venceu. O modo **simples**
+registra o exercício inteiro como feito, num toque, sem peso nem repetições:
+
+```
+sessoes/{id}/exercicios/{slotId} = { exercicioId, exercicioNome, concluidoEm }
+```
+
+O nome literal vai junto pelo mesmo motivo de DD-A05. Nada é gravado em `cargas`,
+então não existe sugestão de progressão nesse modo — é a troca consciente, não uma
+lacuna. `config.modoRegistro` escolhe por usuário; configs gravadas antes do campo
+existir caem no simples. O modo **detalhado** segue íntegro atrás da opção, com o
+pipeline completo de DD-A09/DD-A10. A semana do ciclo (DD-A08), o status da sessão e
+o histórico não dependem do modo, e as regras publicadas já aceitam o nó novo — a
+validação de `series` não alcança `exercicios`.
+
 ### DD-A13 — Ruptura limpa com o VitePress, não migração incremental
 O repo hoje é um site VitePress: `src/` contém markdown de conteúdo e `.vitepress/`
 contém tema e config. VitePress é Vite + Vue por baixo, mas é um SSG com router e
@@ -252,6 +269,7 @@ simples e não muda o core.
     semanaManual: null             # override de DD-A08
     incrementoPadrao: 2.5          # kg
     unidade: "kg"
+    modoRegistro: "simples"        # ou "detalhado" · DD-A18
     indisponiveis/{exercicioId}: true
     atualizadoEm: <server ts>
   overrides/{ciclo}/{slotId}: exercicioId
@@ -264,6 +282,7 @@ simples e não muda o core.
     inicioEm, fimEm
     series/{slotId}/{indice}       { exercicioId, exercicioNome, peso, reps,
                                      rir, concluidaEm }
+    exercicios/{slotId}            { exercicioId, exercicioNome, concluidoEm }  # modo simples · DD-A18
   cargas/{exercicioId}             { peso, reps, bateuTopo, atualizadoEm, sessaoId }
   prs/{exercicioId}                { peso, reps, e1rm, data, sessaoId }
 ```
@@ -483,11 +502,13 @@ Cenário real: mesmo usuário no celular na academia e no desktop em casa.
 // stores/sessao.ts
 { ativa: Ref<Sessao|null>,
   iniciar(treinoId: TreinoId): Promise<void>,
-  registrarSerie(slotId, indice, dados): Promise<void>,
+  registrarSerie(slotId, indice, dados): Promise<void>,   // modo detalhado
   desfazerSerie(slotId, indice): Promise<void>,
+  marcarExercicio(slotId): Promise<void>,                 // modo simples · DD-A18
+  desmarcarExercicio(slotId): Promise<void>,
   finalizar(): Promise<void>,
   descartar(): Promise<void>,
-  progresso: ComputedRef<{ feitas: number; total: number }> }
+  progresso: ComputedRef<{ feitas: number; total: number }> }  // exercícios no simples, séries no detalhado
 
 // stores/cargas.ts
 { mapa: Ref<Record<string, Carga>>,
@@ -513,7 +534,7 @@ paga: nenhum estado derivado precisa ser invalidado ou re-sincronizado.
 | `/treino/:treinoId` | Treino | Execução. Detalhada abaixo. |
 | `/ciclo` | Ciclo | Os 5 treinos do ciclo atual, tabela de volume semanal, avisos do gerador, ação de avançar ciclo, overrides. |
 | `/historico` | Histórico | Sessões concluídas, progressão de carga por exercício. |
-| `/config` | Config | Incremento padrão, equipamento indisponível, versão da metodologia, exportar dados. |
+| `/config` | Config | Modo de registro (DD-A18), incremento padrão, equipamento indisponível, versão da metodologia, exportar dados. |
 
 Guard: rotas exceto `/login` exigem `auth.user`. O guard espera a resolução de
 `onAuthStateChanged` (que vem do storage local) antes de decidir — não redirecione
@@ -526,6 +547,11 @@ abertura offline.
 
 É a tela que define se o app é usável. Restrições: celular na mão, mão suada,
 possivelmente uma mão só, entre séries, com pressa.
+
+**Modo simples (DD-A18, padrão):** a lista vira uma checklist — um botão por
+exercício com nome, alvo e prescrição (`4 × 6-10`); um toque marca o exercício
+inteiro como feito, o mesmo toque desfaz. Sem entrada de peso/reps, sem sugestão de
+carga e sem timer de descanso. O restante desta seção descreve o modo detalhado.
 
 **Layout:** lista vertical de cards, um por exercício, na ordem dos slots. Card
 expandido = exercício atual; os demais colapsados mostrando só nome, séries

@@ -41,6 +41,9 @@ export const useHistoricoStore = defineStore("historico", () => {
   const totalDeSeries = (sessao: Sessao) =>
     Object.values(sessao.series).reduce((soma, slot) => soma + Object.keys(slot).length, 0);
 
+  /** Marcações do modo simples (DD-A18) — sessões antigas não têm o nó. */
+  const totalDeExercicios = (sessao: Sessao) => Object.keys(sessao.exercicios ?? {}).length;
+
   const volumeDaSessao = (sessao: Sessao) =>
     Object.values(sessao.series).reduce(
       (soma, slot) =>
@@ -114,6 +117,7 @@ export const useHistoricoStore = defineStore("historico", () => {
     porExercicio,
     carregando,
     totalDeSeries,
+    totalDeExercicios,
     volumeDaSessao,
     carregar,
     recarregar,

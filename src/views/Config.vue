@@ -73,6 +73,32 @@ async function exportar(): Promise<void> {
     </section>
 
     <section class="bloco">
+      <h2 class="bloco__titulo">Registro do treino</h2>
+      <p class="bloco__nota">
+        No modo simples, um toque marca o exercício inteiro como feito — sem carga, repetições
+        nem séries. O detalhado registra série a série e sugere a progressão de carga.
+      </p>
+      <div class="modos">
+        <button
+          class="modos__opcao"
+          :class="{ 'modos__opcao--ativa': config.modoRegistro === 'simples' }"
+          type="button"
+          @click="config.salvar({ modoRegistro: 'simples' })"
+        >
+          Simples
+        </button>
+        <button
+          class="modos__opcao"
+          :class="{ 'modos__opcao--ativa': config.modoRegistro === 'detalhado' }"
+          type="button"
+          @click="config.salvar({ modoRegistro: 'detalhado' })"
+        >
+          Detalhado
+        </button>
+      </div>
+    </section>
+
+    <section v-if="config.modoRegistro === 'detalhado'" class="bloco">
       <h2 class="bloco__titulo">Progressão de carga</h2>
       <p class="bloco__nota">
         Incremento sugerido quando você bate o topo da faixa de repetições em todas as séries.
@@ -311,6 +337,28 @@ async function exportar(): Promise<void> {
 
 .botao:disabled {
   opacity: 0.5;
+}
+
+.modos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.375rem;
+}
+
+.modos__opcao {
+  min-height: var(--toque-min);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: none;
+  color: var(--texto);
+  font-size: 0.9375rem;
+}
+
+.modos__opcao--ativa {
+  border-color: var(--acento);
+  background: var(--acento);
+  color: #fff;
+  font-weight: 600;
 }
 
 .semana {

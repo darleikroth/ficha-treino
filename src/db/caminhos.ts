@@ -35,6 +35,10 @@ export const caminhoSessao = (uid: string, sessaoId: string) =>
 export const caminhoSerie = (uid: string, sessaoId: string, slotId: string, indice: number) =>
   `${caminhoSessao(uid, sessaoId)}/series/${slotId}/${indice}`;
 
+/** Path exato de uma marcação do modo simples (DD-A18) — mesmo racional acima. */
+export const caminhoExercicioFeito = (uid: string, sessaoId: string, slotId: string) =>
+  `${caminhoSessao(uid, sessaoId)}/exercicios/${slotId}`;
+
 export const caminhoCarga = (uid: string, exercicioId: string) =>
   `${caminhoUsuario(uid)}/cargas/${exercicioId}`;
 

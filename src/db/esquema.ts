@@ -20,6 +20,9 @@ export type NomeStore =
 
 export type StatusSessao = "ativa" | "concluida" | "descartada";
 
+/** DD-A18: "simples" marca o exercício inteiro; "detalhado" registra série a série. */
+export type ModoRegistro = "simples" | "detalhado";
+
 /** Uma série registrada. Guarda o nome literal do exercício por DD-A05. */
 export interface Serie {
   exercicioId: string;
@@ -28,6 +31,16 @@ export interface Serie {
   reps: number;
   rir: number | null;
   concluidaEm: number;
+}
+
+/**
+ * Um exercício marcado como feito no modo simples (DD-A18). Guarda o nome
+ * literal por DD-A05, pelo mesmo motivo das séries.
+ */
+export interface ExercicioFeito {
+  exercicioId: string;
+  exercicioNome: string;
+  concluidoEm: number;
 }
 
 export interface Sessao {
@@ -43,6 +56,8 @@ export interface Sessao {
   fimEm: number | null;
   /** series[slotId][indice] — espelha o aninhamento do RTDB (ARQUITETURA §3). */
   series: Record<string, Record<string, Serie>>;
+  /** exercicios[slotId] — marcações do modo simples (DD-A18). Ausente em sessões antigas. */
+  exercicios?: Record<string, ExercicioFeito>;
 }
 
 export interface Carga {
@@ -62,6 +77,8 @@ export interface Config {
   semanaManual: number | null;
   incrementoPadrao: number;
   unidade: "kg" | "lb";
+  /** DD-A18. Configs gravadas antes do campo existir caem no "simples". */
+  modoRegistro?: ModoRegistro;
   indisponiveis: Record<string, boolean>;
   atualizadoEm: number;
 }

@@ -158,7 +158,9 @@ describe("registro de série", () => {
   });
 
   test("progresso conta séries feitas sobre o alvo do treino", async () => {
-    const { sessao, ciclo } = await montar();
+    const { sessao, ciclo, config } = await montar();
+    // DD-A18: o padrão é o modo simples; este teste mede o progresso por série.
+    await config.salvar({ modoRegistro: "detalhado" });
     await sessao.iniciar(UID, "T1");
 
     const total = ciclo
@@ -169,6 +171,78 @@ describe("registro de série", () => {
     await sessao.registrarSerie("T1-S1", 0, { peso: 60, reps: 10, rir: 2 });
     expect(sessao.progresso.feitas).toBe(1);
     expect(sessao.completa).toBe(false);
+  });
+});
+
+describe("modo simples (DD-A18)", () => {
+  test("marcar grava o nome literal do exercício (DD-A05) e nada em cargas", async () => {
+    const { sessao, cargas } = await montar();
+    await sessao.iniciar(UID, "T1");
+    await sessao.marcarExercicio("T1-S1");
+
+    const feito = sessao.exercicioFeito("T1-S1");
+    expect(feito).toMatchObject({
+      exercicioId: "supino-reto-barra",
+      exercicioNome: "Supino Reto com Barra",
+    });
+    expect(feito?.concluidoEm).toBeGreaterThan(0);
+
+    // Sem peso e reps não há progressão a derivar: cargas fica intocada.
+    await cargas.recarregar(UID);
+    expect(cargas.ultima("supino-reto-barra")).toBeUndefined();
+  });
+
+  test("recusa slot que não pertence ao treino", async () => {
+    const { sessao } = await montar();
+    await sessao.iniciar(UID, "T1");
+    await expect(sessao.marcarExercicio("T3-S1")).rejects.toThrow(/Slot fora do treino/);
+  });
+
+  test("progresso conta exercícios e completa ao marcar todos", async () => {
+    const { sessao, ciclo } = await montar();
+    await sessao.iniciar(UID, "T1");
+
+    const itens = ciclo.treino("T1")!.itens;
+    expect(sessao.progresso).toEqual({ feitas: 0, total: itens.length });
+
+    for (const item of itens) await sessao.marcarExercicio(item.slot.id);
+    expect(sessao.progresso).toEqual({ feitas: itens.length, total: itens.length });
+    expect(sessao.completa).toBe(true);
+  });
+
+  test("desmarcar remove a marcação e enfileira o remove no path exato", async () => {
+    const { sessao } = await montar();
+    await sessao.iniciar(UID, "T1");
+    await sessao.marcarExercicio("T1-S1");
+    await sessao.desmarcarExercicio("T1-S1");
+
+    expect(sessao.exercicioFeito("T1-S1")).toBeNull();
+    expect(sessao.progresso.feitas).toBe(0);
+
+    const ops = await outbox.proximasPendentes(50);
+    expect(ops.at(-1)).toMatchObject({
+      op: "remove",
+      path: expect.stringContaining("/exercicios/T1-S1"),
+    });
+  });
+
+  test("marcações sobrevivem a reload no meio e a fila persiste (checkpoint)", async () => {
+    const primeiro = await montar();
+    await primeiro.sessao.iniciar(UID, "T1");
+    await primeiro.sessao.marcarExercicio("T1-S1");
+    await primeiro.sessao.marcarExercicio("T1-S2");
+
+    const pendentesAntes = await outbox.contarPendentes();
+    expect(pendentesAntes).toBeGreaterThan(0);
+
+    // Reload: Pinia zerada, stores remontadas a partir do IndexedDB.
+    const depois = await montar();
+
+    expect(depois.sessao.ativa?.treinoId).toBe("T1");
+    expect(depois.sessao.exercicioFeito("T1-S1")).not.toBeNull();
+    expect(depois.sessao.exercicioFeito("T1-S2")).not.toBeNull();
+    expect(depois.sessao.progresso.feitas).toBe(2);
+    expect(await outbox.contarPendentes()).toBe(pendentesAntes);
   });
 });
 
