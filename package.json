@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run icones && vite",
+    "start": "npm run icones && vite",
     "prebuild": "npm run icones",
     "build": "vue-tsc -b && vite build",
     "icones": "node --experimental-strip-types scripts/gerar-icones.ts",
